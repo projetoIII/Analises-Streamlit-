@@ -88,11 +88,33 @@ def questao3():
 def questao4():
     st.subheader('**4 - Gasto com programas orçamentários por cidade**')
 
+    estados = estadosLista()
+    estado = st.sidebar.selectbox('Selecione o estado que seja consultar as cidades e suas despesas com programas orçamentários', options = estados)
+
+    #query para pegar as cidades do estado
+    cidades_base = run_query("SELECT DISTINCT municipio FROM localidade WHERE ------")
+    cidades = []
+
+    # query para pegar os gastos
+    gastos_base = run_query("SELECT DISTINCT municipio FROM localidade WHERE ------")
+    gastos = []
+
+    for cidade in cidades_base:
+        cd = str(cidade[2:-3])
+        cidades.append(cd)
+
+    st.write(pd.DataFrame({
+        'Cidade': cidades,
+        'Gastos': gastos,
+    }))
+
+
 def questao5():
     st.subheader('**5 - Porcentagem de gastos com um programa orçamentário específico**')
 
 def questao6():
     st.subheader('**6 - Valor empenhado, liquidado e pago por ação num estado específico e que não tenha sido de dívida**')
+
 
 def default():
     return "Incorreto"
