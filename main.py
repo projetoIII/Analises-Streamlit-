@@ -85,9 +85,24 @@ def questao2():
 def questao3():
     st.subheader('**3 - Gasto total semanal por semana e por estado**')
 
+    st.sidebar.markdown('## Estado')
+    estados = estadosLista()
+    estado = st.sidebar.selectbox('Selecione o estado que deseja consultar os gastos semanais', options=estados)
+
+    gastos_base = run_query("") #fazer a query pra retornar os valores por semana
+    gastos = []
+
+    for gasto in gastos_base:
+        gastos.append(gasto)
+
+    chart_data = pd.DataFrame(gastos, columns=['semanas'])
+    st.line_chart(data=chart_data, x="Semana", y="Gastos")
+
+
 def questao4():
     st.subheader('**4 - Gasto com programas orçamentários por cidade**')
 
+    st.sidebar.markdown('## Estado')
     estados = estadosLista()
     estado = st.sidebar.selectbox('Selecione o estado que seja consultar as cidades e suas despesas com programas orçamentários', options = estados)
 
@@ -112,8 +127,53 @@ def questao4():
 def questao5():
     st.subheader('**5 - Porcentagem de gastos com um programa orçamentário específico**')
 
+    st.sidebar.markdown('## Programa orçamentário')
+    programas_orcamentarios = run_query("SELECT DISTINCT nome_grupo_despesa FROM grupos_despesas") #ajeitar essa query
+    programas = []
+
+    for programa in programas_orcamentarios:
+        pg = str(programa)
+        programas.append(pg[2:-3])
+
+    programa = st.sidebar.selectbox('Selecione o programa orçamentário que deseja saber a porcentagem',
+                                   options=programas)
+
+    gasto_total = run_query("") # query que retorno o total de gasto de todos os programas orcamentarios
+    gasto_programa = run_query("") #query que retorne o valor total do programa orcamentario especifico
+
+    porcentagem = "fazer aqui uma conta pra descobrir sua porcentagem"
+
+    st.write(porcentagem, '%')
+
 def questao6():
     st.subheader('**6 - Valor empenhado, liquidado e pago por ação num estado específico e que não tenha sido de dívida**')
+
+    st.sidebar.markdown('## Estados')
+    estados = estadosLista()
+    estado = st.sidebar.selectbox(
+        'Selecione o estado que seja consultar uma ação', options=estados)
+
+    st.sidebar.markdown('## Ação orçamentária')
+    acoes_base = run_query("SELECT DISTINCT nome_grupo_despesa FROM grupos_despesas")
+    acoes = []
+
+    for acao in acoes_base:
+        ac = str(acao)
+        acoes.append(ac[2:-3])
+
+    acao = st.sidebar.selectbox('Selecione ação orçamentária que deseja saber os valores',
+                                   options=acoes)
+
+    valores_base = run_query("") #query que retorne o valor empenhado, liquidado e pago
+    valores = []
+
+    for valor in valores_base:
+        valores.append(valor)
+
+    st.title("Valor empenhado, liquidado e pago pela ação ", acao, " no estado ", estado)
+    st.write("Valor empenhado: ", valores[0])
+    st.write("Valor liquidado: ", valores[1])
+    st.write("Valor pago: ", valores[2])
 
 
 def default():
