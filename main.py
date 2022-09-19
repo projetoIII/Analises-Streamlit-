@@ -65,6 +65,10 @@ def plot_acoes(dataframe, categoria):
 
     return fig
 
+def questao2():
+    #https://docs.streamlit.io/library/api-reference/charts/st.pydeck_chart
+    st.write("questao 2")
+
 def questao3():
     # https://www.alura.com.br/artigos/streamlit-compartilhando-sua-aplicacao-de-dados-sem-dor-de-cabeca
 
@@ -92,6 +96,25 @@ def questao3():
     grafico = plot_acoes(dados, categoria_grafico)
     st.pyplot(grafico)
 
+def questao4():
+    st.write("questao 4")
+
+def questao5():
+    #https://docs.streamlit.io/library/api-reference/charts/st.map
+    st.write("questao 5")
+
+def questao6():
+    st.write("questao 6")
+
+def questao7():
+    st.write("questao 7")
+
+def questao8():
+    st.write("questao 8")
+
+def questao9():
+    st.write("questao 9")
+
 def default():
     return "Incorreto"
 #----------------------------------------------------------------------------
@@ -107,20 +130,14 @@ grafico = st.sidebar.selectbox('Selecione o gráfico que deseja exibir', options
 #ir criando uma função pra cada questão
 switcher = {
     "Gráfico 1": questao1,
-    "Gráfico 2": questao1,
+    "Gráfico 2": questao2,
     "Gráfico 3": questao3,
     "Gráfico 4": questao1,
     "Gráfico 5": questao1,
     "Gráfico 6": questao1,
     "Gráfico 7": questao1,
     "Gráfico 8": questao1,
-    "Gráfico 9": questao1,
-    "Gráfico 10": questao1,
-    "Gráfico 11": questao1,
-    "Gráfico 12": questao1,
-    "Gráfico 13": questao1,
-    "Gráfico 14": questao1,
-    "Gráfico 15": questao1
+    "Gráfico 9": questao1
     }
 
 def switch(dayOfWeek):
