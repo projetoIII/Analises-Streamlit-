@@ -1,6 +1,7 @@
 import streamlit as st
 import mysql.connector
 import switcher as switcher
+import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 
@@ -50,8 +51,14 @@ def questao1():
 
     estado = st.sidebar.selectbox('Selecione o estado que deseja saber a porcentagem', options = estados)
 
+    query = "SELECT grupo_despesa.nome_grupo_despesa, fato_despesas.grupo_despesa_id as grupo, " \
+             "count(select count(fato_despesas.valor_pago) from fatos_despesas where fatos.grupo_despesa_id = grupo)* 100.0 / sum(fato_despesas.valor_pago) as pcrt " \
+             "FROM fato_despesas INNER JOIN grupo_despesa ON grupo_despesa.id = fato_despesas.grupo_despesa_id " \
+             "INNER JOIN localidade ON localidade.id = fato_despesas.localidade.id " \
+             "WHERE localidade.uf =" + estado + "GROUP BY group_despesas;"
+
     #escreve aqui a porcentagem (filtra do sql) - pega as variáveis despesa e regiao e faz uma query e o resultado da query escreve no write
-    porcentagem = run_query("SELECT * from fato_despesas;") #trocar isso aqui pelo resultado da query
+    porcentagem = run_query(query)
 
     st.write(porcentagem, '%')
 
@@ -66,14 +73,14 @@ def questao2():
         og = str(orgao)
         orgaos_base.append(og[2:-3])
 
+    orgao = st.sidebar.selectbox('Selecione o órgão', options = orgaos_base)
+
     #fazer uma query que pegue aquele orgao e retorne os tres estados que mais investem nele
     estados = estadosLista() #trocar isso aqui pelo resultado da query
 
     st.title("Estados que mais investem")
     for i in range(1, 4):
         st.write(i, ' - ', estados[i-1])
-
-
 
 def questao3():
     st.subheader('**3 - Gasto total semanal por semana e por estado**')
