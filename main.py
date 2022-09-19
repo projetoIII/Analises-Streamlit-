@@ -25,7 +25,7 @@ def run_query(query):
 def questao1():
     # https://www.alura.com.br/artigos/streamlit-compartilhando-sua-aplicacao-de-dados-sem-dor-de-cabeca
 
-    st.subheader('**1 - Porcentagem de gastos de cada grupo de despesa por região**')
+    st.subheader('**1 - Porcentagem de gastos de cada grupo de despesa por estado**')
 
     st.sidebar.markdown('## Grupo de despesa')
     despesas = run_query("SELECT DISTINCT nome_grupo_despesa FROM grupos_despesas")
@@ -37,15 +37,15 @@ def questao1():
 
     despesa = st.sidebar.selectbox('Selecione o grupo de gastros que deseja saber a porcentagem', options = grupo_despesas)
 
-    st.sidebar.markdown('## Região')
-    regioes_base = run_query("SELECT DISTINCT uf FROM localidade")
-    regioes = []
+    st.sidebar.markdown('## Estado')
+    estados_base = run_query("SELECT DISTINCT uf FROM localidade")
+    estados = []
 
-    for regiao in regioes_base:
-        uf = str(regiao)
-        regioes.append(uf[2:-3])
+    for estado in estados_base:
+        uf = str(estado)
+        estados.append(uf[2:-3])
 
-    regiao = st.sidebar.selectbox('Selecione a região que deseja saber a porcentagem', options = regioes)
+    estado = st.sidebar.selectbox('Selecione o estado que deseja saber a porcentagem', options = estados)
 
     #escreve aqui a porcentagem (filtra do sql) - pega as variáveis despesa e regiao e faz uma query e o resultado da query escreve no write
     porcentagem = run_query("SELECT * from fato_despesas;")
