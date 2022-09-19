@@ -2,8 +2,6 @@ import streamlit as st
 import mysql.connector
 import switcher as switcher
 import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
 
 st.title('Análise dos dados')
 
@@ -18,8 +16,6 @@ def run_query(query):
     with conn.cursor() as cur:
         cur.execute(query)
         return cur.fetchall()
-
-#DAQUI PRA BAIXO COMEÇO A FAZER OS GRÁFICOS DINAMICOS PARA CADA QUESTÃO
 
 def estadosLista():
     estados_base = run_query("SELECT DISTINCT uf FROM localidade")
@@ -51,13 +47,16 @@ def questao1():
 
     estado = st.sidebar.selectbox('Selecione o estado que deseja saber a porcentagem', options = estados)
 
-    query = "SELECT grupo_despesa.nome_grupo_despesa, fato_despesas.grupo_despesa_id as grupo, " \
-             "count(select count(fato_despesas.valor_pago) from fatos_despesas where fatos.grupo_despesa_id = grupo)* 100.0 / sum(fato_despesas.valor_pago) as pcrt " \
-             "FROM fato_despesas INNER JOIN grupo_despesa ON grupo_despesa.id = fato_despesas.grupo_despesa_id " \
-             "INNER JOIN localidade ON localidade.id = fato_despesas.localidade.id " \
-             "WHERE localidade.uf =" + estado + "GROUP BY group_despesas;"
+    query = "SELECT gd.nome_grupo_despesa,  " \
+            "(sum(valor_pago) /  (select sum(valor_pago) " \
+            "from fato_despesas fd " \
+            "where fd.localidade_id = 2 " \
+            "and f.grupo_despesa_id = 3)) * 100  as porcentagem " \
+            "FROM fato_despesas f INNER JOIN grupos_despesas gd ON gd.grupo_despesa_id = f.grupo_despesa_id " \
+            "WHERE  f.localidade_id = 2 " \
+            "and  f.grupo_despesa_id = 3 " \
+            "GROUP BY nome_grupo_despesa;"
 
-    #escreve aqui a porcentagem (filtra do sql) - pega as variáveis despesa e regiao e faz uma query e o resultado da query escreve no write
     porcentagem = run_query(query)
 
     st.write(porcentagem, '%')
@@ -76,7 +75,7 @@ def questao2():
     orgao = st.sidebar.selectbox('Selecione o órgão', options = orgaos_base)
 
     #fazer uma query que pegue aquele orgao e retorne os tres estados que mais investem nele
-    estados = estadosLista() #trocar isso aqui pelo resultado da query
+    estados = run_query("SELECT DISTINCT uf FROM localidade")
 
     st.title("Estados que mais investem")
     for i in range(1, 4):
@@ -89,7 +88,7 @@ def questao3():
     estados = estadosLista()
     estado = st.sidebar.selectbox('Selecione o estado que deseja consultar os gastos semanais', options=estados)
 
-    gastos_base = run_query("") #fazer a query pra retornar os valores por semana
+    gastos_base = run_query("SELECT DISTINCT uf FROM localidade") #fazer a query pra retornar os valores por semana
     gastos = []
 
     for gasto in gastos_base:
@@ -107,11 +106,11 @@ def questao4():
     estado = st.sidebar.selectbox('Selecione o estado que seja consultar as cidades e suas despesas com programas orçamentários', options = estados)
 
     #query para pegar as cidades do estado
-    cidades_base = run_query("SELECT DISTINCT municipio FROM localidade WHERE ------")
+    cidades_base = run_query("SELECT DISTINCT uf FROM localidade")
     cidades = []
 
     # query para pegar os gastos
-    gastos_base = run_query("SELECT DISTINCT municipio FROM localidade WHERE ------")
+    gastos_base = run_query("SELECT DISTINCT uf FROM localidade")
     gastos = []
 
     for cidade in cidades_base:
@@ -128,7 +127,7 @@ def questao5():
     st.subheader('**5 - Porcentagem de gastos com um programa orçamentário específico**')
 
     st.sidebar.markdown('## Programa orçamentário')
-    programas_orcamentarios = run_query("SELECT DISTINCT nome_grupo_despesa FROM grupos_despesas") #ajeitar essa query
+    programas_orcamentarios = run_query("SELECT DISTINCT uf FROM localidade") #ajeitar essa query
     programas = []
 
     for programa in programas_orcamentarios:
@@ -138,8 +137,8 @@ def questao5():
     programa = st.sidebar.selectbox('Selecione o programa orçamentário que deseja saber a porcentagem',
                                    options=programas)
 
-    gasto_total = run_query("") # query que retorno o total de gasto de todos os programas orcamentarios
-    gasto_programa = run_query("") #query que retorne o valor total do programa orcamentario especifico
+    gasto_total = run_query("SELECT DISTINCT uf FROM localidade") # query que retorno o total de gasto de todos os programas orcamentarios
+    gasto_programa = run_query("SELECT DISTINCT uf FROM localidade") #query que retorne o valor total do programa orcamentario especifico
 
     porcentagem = "fazer aqui uma conta pra descobrir sua porcentagem"
 
@@ -154,7 +153,7 @@ def questao6():
         'Selecione o estado que seja consultar uma ação', options=estados)
 
     st.sidebar.markdown('## Ação orçamentária')
-    acoes_base = run_query("SELECT DISTINCT nome_grupo_despesa FROM grupos_despesas")
+    acoes_base = run_query("SELECT DISTINCT uf FROM localidade") #corrigir query
     acoes = []
 
     for acao in acoes_base:
@@ -164,7 +163,7 @@ def questao6():
     acao = st.sidebar.selectbox('Selecione ação orçamentária que deseja saber os valores',
                                    options=acoes)
 
-    valores_base = run_query("") #query que retorne o valor empenhado, liquidado e pago
+    valores_base = run_query("SELECT DISTINCT uf FROM localidade") #query que retorne o valor empenhado, liquidado e pago
     valores = []
 
     for valor in valores_base:
