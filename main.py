@@ -67,7 +67,7 @@ def plot_acoes(dataframe, categoria):
 
 def questao2():
     #https://docs.streamlit.io/library/api-reference/charts/st.pydeck_chart
-    st.write("questao 2")
+    st.subheader('**2 - Cidades que receberam mais investimentos de programas orçamentários**')
 
 def questao3():
     # https://www.alura.com.br/artigos/streamlit-compartilhando-sua-aplicacao-de-dados-sem-dor-de-cabeca
@@ -97,23 +97,23 @@ def questao3():
     st.pyplot(grafico)
 
 def questao4():
-    st.write("questao 4")
+    st.subheader('**4 - Programas orçamentários que causaram menos despesas**')
 
 def questao5():
     #https://docs.streamlit.io/library/api-reference/charts/st.map
-    st.write("questao 5")
+    st.subheader('**5 - Estados que investem mais em segurança pública e em educação**')
 
 def questao6():
-    st.write("questao 6")
+    st.subheader('**6 - Gasto total semanal da primeira semana (do dia 1 ao dia 8) de janeiro por cada estado**')
 
 def questao7():
-    st.write("questao 7")
+    st.subheader('**7 - Gastos com a segurança do Recife em janeiro**')
 
 def questao8():
-    st.write("questao 8")
+    st.subheader('**8 - Porcentagem de gastos com dívidas externas e internas no mês de janeiro**')
 
 def questao9():
-    st.write("questao 9")
+    st.subheader('**9 - No mês de janeiro, qual foi o valor empenhado, liquidado e pago para aposentadoria no estado de Pernambuco e que não tenha sido de dívida**')
 
 def default():
     return "Incorreto"
@@ -132,12 +132,12 @@ switcher = {
     "Gráfico 1": questao1,
     "Gráfico 2": questao2,
     "Gráfico 3": questao3,
-    "Gráfico 4": questao1,
-    "Gráfico 5": questao1,
-    "Gráfico 6": questao1,
-    "Gráfico 7": questao1,
-    "Gráfico 8": questao1,
-    "Gráfico 9": questao1
+    "Gráfico 4": questao4,
+    "Gráfico 5": questao5,
+    "Gráfico 6": questao6,
+    "Gráfico 7": questao7,
+    "Gráfico 8": questao8,
+    "Gráfico 9": questao9
     }
 
 def switch(dayOfWeek):
