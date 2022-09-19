@@ -29,20 +29,22 @@ def questao1():
     st.subheader('**1 - Porcentagem de gastos de cada grupo de despesa por região no mês de janeiro**')
 
     st.sidebar.markdown('## Grupo de despesa')
-    despesas = run_query("escrever query aqui pra pegar os nomes dos grupos de despesas da base de dados")
+    despesas = run_query("SELECT DISTINCT nome_grupo_despesa FROM grupos_despesas")
     grupo_despesas = []
 
     for grupo in despesas:
-       grupo_despesas.append(grupo)
+        gp = str(grupo)
+        grupo_despesas.append(gp[2:-3])
 
     despesa = st.sidebar.selectbox('Selecione o grupo de gastros que deseja saber a porcentagem', options = grupo_despesas)
 
     st.sidebar.markdown('## Região')
-    regioes_base = run_query("escrever query aqui pra pegar os nomes das regioes da base de dados")
+    regioes_base = run_query("SELECT DISTINCT uf FROM localidade")
     regioes = []
 
     for regiao in regioes_base:
-       regioes.append(regiao)
+        uf = str(regiao)
+        regioes.append(uf[2:-3])
 
     regiao = st.sidebar.selectbox('Selecione a região que deseja saber a porcentagem', options = regioes)
 
@@ -51,6 +53,9 @@ def questao1():
 
     st.write('valor aqui', '%')
 
+def questao2():
+    #https://docs.streamlit.io/library/api-reference/charts/st.pydeck_chart
+    st.subheader('**2 - Cidades que receberam mais investimentos de programas orçamentários**')
 
 def plot_acoes(dataframe, categoria):
     #alterar esses dados
@@ -64,10 +69,6 @@ def plot_acoes(dataframe, categoria):
     ax.set_ylabel('Despesa', fontsize=12)
 
     return fig
-
-def questao2():
-    #https://docs.streamlit.io/library/api-reference/charts/st.pydeck_chart
-    st.subheader('**2 - Cidades que receberam mais investimentos de programas orçamentários**')
 
 def questao3():
     # https://www.alura.com.br/artigos/streamlit-compartilhando-sua-aplicacao-de-dados-sem-dor-de-cabeca
