@@ -18,9 +18,17 @@ def run_query(query):
         cur.execute(query)
         return cur.fetchall()
 
-#run_query("SELECT * from fato_despesas;")
-
 #DAQUI PRA BAIXO COMEÇO A FAZER OS GRÁFICOS DINAMICOS PARA CADA QUESTÃO
+
+def estadosLista():
+    estados_base = run_query("SELECT DISTINCT uf FROM localidade")
+    estados = []
+
+    for estado in estados_base:
+        uf = str(estado)
+        estados.append(uf[2:-3])
+
+    return estados
 
 def questao1():
     # https://www.alura.com.br/artigos/streamlit-compartilhando-sua-aplicacao-de-dados-sem-dor-de-cabeca
@@ -38,36 +46,34 @@ def questao1():
     despesa = st.sidebar.selectbox('Selecione o grupo de gastros que deseja saber a porcentagem', options = grupo_despesas)
 
     st.sidebar.markdown('## Estado')
-    estados_base = run_query("SELECT DISTINCT uf FROM localidade")
-    estados = []
-
-    for estado in estados_base:
-        uf = str(estado)
-        estados.append(uf[2:-3])
+    estados = estadosLista()
 
     estado = st.sidebar.selectbox('Selecione o estado que deseja saber a porcentagem', options = estados)
 
     #escreve aqui a porcentagem (filtra do sql) - pega as variáveis despesa e regiao e faz uma query e o resultado da query escreve no write
-    porcentagem = run_query("SELECT * from fato_despesas;")
+    porcentagem = run_query("SELECT * from fato_despesas;") #trocar isso aqui pelo resultado da query
 
     st.write(porcentagem, '%')
 
 def questao2():
-    #https://docs.streamlit.io/library/api-reference/charts/st.pydeck_chart
     st.subheader('**2 - Estados investem mais em um órgão específico**')
 
-def plot_acoes(dataframe, categoria):
-    #alterar esses dados
-    dados_plot = dataframe.query('Categoria == @categoria')
+    st.sidebar.markdown('## Órgão')
+    orgaos = run_query("SELECT DISTINCT nome_orgao FROM orgaos")
+    orgaos_base = []
 
-    fig, ax = plt.subplots(figsize=(8, 6))
-    ax = sns.barplot(x='Ação', y='Despesa', data=dados_plot)
-    ax.set_title(f'Menores despesas em ações orçamentárias na região', fontsize=16)
-    ax.set_xlabel('Ação', fontsize=12)
-    ax.tick_params(rotation=20, axis='x')
-    ax.set_ylabel('Despesa', fontsize=12)
+    for orgao in orgaos:
+        og = str(orgao)
+        orgaos_base.append(og[2:-3])
 
-    return fig
+    #fazer uma query que pegue aquele orgao e retorne os tres estados que mais investem nele
+    estados = estadosLista() #trocar isso aqui pelo resultado da query
+
+    st.title("Estados que mais investem")
+    for i in range(1, 4):
+        st.write(i, ' - ', estados[i-1])
+
+
 
 def questao3():
     st.subheader('**3 - Gasto total semanal por semana e por estado**')
@@ -76,7 +82,6 @@ def questao4():
     st.subheader('**4 - Gasto com programas orçamentários por cidade**')
 
 def questao5():
-    #https://docs.streamlit.io/library/api-reference/charts/st.map
     st.subheader('**5 - Porcentagem de gastos com um programa orçamentário específico**')
 
 def questao6():
