@@ -1,6 +1,9 @@
 import streamlit as st
 import mysql.connector
 import switcher as switcher
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 st.title('Análise dos dados')
 
@@ -48,6 +51,47 @@ def questao1():
 
     st.write('valor aqui', '%')
 
+
+def plot_acoes(dataframe, categoria):
+    #alterar esses dados
+    dados_plot = dataframe.query('Categoria == @categoria')
+
+    fig, ax = plt.subplots(figsize=(8, 6))
+    ax = sns.barplot(x='Ação', y='Despesa', data=dados_plot)
+    ax.set_title(f'Menores despesas em ações orçamentárias na região', fontsize=16)
+    ax.set_xlabel('Ação', fontsize=12)
+    ax.tick_params(rotation=20, axis='x')
+    ax.set_ylabel('Despesa', fontsize=12)
+
+    return fig
+
+def questao3():
+    # https://www.alura.com.br/artigos/streamlit-compartilhando-sua-aplicacao-de-dados-sem-dor-de-cabeca
+
+    st.subheader('**3 - Ações orçamentárias que causaram menos despesa para cada região brasileira**')
+
+    st.sidebar.markdown('## Ações orçamentárias')
+    acoes = run_query("escrever query aqui pra pegar os nomes das ações orçamentárias da base de dados")
+    acoes_orcamentarias = []
+
+    for acao in acoes:
+       acoes_orcamentarias.append(acao)
+
+    acao = st.sidebar.selectbox('Selecione o grupo de gastros que deseja saber a porcentagem', options = acoes_orcamentarias)
+
+    st.sidebar.markdown('## Região')
+    regioes_base = run_query("escrever query aqui pra pegar os nomes das regioes da base de dados")
+    regioes = []
+
+    for regiao in regioes_base:
+       regioes.append(regiao)
+
+    regiao = st.sidebar.selectbox('Selecione a região que deseja saber a porcentagem', options = regioes)
+
+    #tem que alterar aqui os dados que sao passados para essa funcao - filtrar da base os menores valores das ações de cada regiao
+    grafico = plot_acoes(dados, categoria_grafico)
+    st.pyplot(grafico)
+
 def default():
     return "Incorreto"
 #----------------------------------------------------------------------------
@@ -64,7 +108,7 @@ grafico = st.sidebar.selectbox('Selecione o gráfico que deseja exibir', options
 switcher = {
     "Gráfico 1": questao1,
     "Gráfico 2": questao1,
-    "Gráfico 3": questao1,
+    "Gráfico 3": questao3,
     "Gráfico 4": questao1,
     "Gráfico 5": questao1,
     "Gráfico 6": questao1,
