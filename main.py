@@ -1,7 +1,6 @@
 import streamlit as st
 import mysql.connector
 import switcher as switcher
-import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 
@@ -26,7 +25,7 @@ def run_query(query):
 def questao1():
     # https://www.alura.com.br/artigos/streamlit-compartilhando-sua-aplicacao-de-dados-sem-dor-de-cabeca
 
-    st.subheader('**1 - Porcentagem de gastos de cada grupo de despesa por região no mês de janeiro**')
+    st.subheader('**1 - Porcentagem de gastos de cada grupo de despesa por região**')
 
     st.sidebar.markdown('## Grupo de despesa')
     despesas = run_query("SELECT DISTINCT nome_grupo_despesa FROM grupos_despesas")
@@ -49,13 +48,13 @@ def questao1():
     regiao = st.sidebar.selectbox('Selecione a região que deseja saber a porcentagem', options = regioes)
 
     #escreve aqui a porcentagem (filtra do sql) - pega as variáveis despesa e regiao e faz uma query e o resultado da query escreve no write
-    # run_query("SELECT * from fato_despesas;")
+    porcentagem = run_query("SELECT * from fato_despesas;")
 
-    st.write('valor aqui', '%')
+    st.write(porcentagem, '%')
 
 def questao2():
     #https://docs.streamlit.io/library/api-reference/charts/st.pydeck_chart
-    st.subheader('**2 - Cidades que receberam mais investimentos de programas orçamentários**')
+    st.subheader('**2 - Estados investem mais em um órgão específico**')
 
 def plot_acoes(dataframe, categoria):
     #alterar esses dados
@@ -71,50 +70,17 @@ def plot_acoes(dataframe, categoria):
     return fig
 
 def questao3():
-    # https://www.alura.com.br/artigos/streamlit-compartilhando-sua-aplicacao-de-dados-sem-dor-de-cabeca
-
-    st.subheader('**3 - Ações orçamentárias que causaram menos despesa para cada região brasileira**')
-
-    st.sidebar.markdown('## Ações orçamentárias')
-    acoes = run_query("escrever query aqui pra pegar os nomes das ações orçamentárias da base de dados")
-    acoes_orcamentarias = []
-
-    for acao in acoes:
-       acoes_orcamentarias.append(acao)
-
-    acao = st.sidebar.selectbox('Selecione o grupo de gastros que deseja saber a porcentagem', options = acoes_orcamentarias)
-
-    st.sidebar.markdown('## Região')
-    regioes_base = run_query("escrever query aqui pra pegar os nomes das regioes da base de dados")
-    regioes = []
-
-    for regiao in regioes_base:
-       regioes.append(regiao)
-
-    regiao = st.sidebar.selectbox('Selecione a região que deseja saber a porcentagem', options = regioes)
-
-    #tem que alterar aqui os dados que sao passados para essa funcao - filtrar da base os menores valores das ações de cada regiao
-    grafico = plot_acoes(dados, categoria_grafico)
-    st.pyplot(grafico)
+    st.subheader('**3 - Gasto total semanal por semana e por estado**')
 
 def questao4():
-    st.subheader('**4 - Programas orçamentários que causaram menos despesas**')
+    st.subheader('**4 - Gasto com programas orçamentários por cidade**')
 
 def questao5():
     #https://docs.streamlit.io/library/api-reference/charts/st.map
-    st.subheader('**5 - Estados que investem mais em segurança pública e em educação**')
+    st.subheader('**5 - Porcentagem de gastos com um programa orçamentário específico**')
 
 def questao6():
-    st.subheader('**6 - Gasto total semanal da primeira semana (do dia 1 ao dia 8) de janeiro por cada estado**')
-
-def questao7():
-    st.subheader('**7 - Gastos com a segurança do Recife em janeiro**')
-
-def questao8():
-    st.subheader('**8 - Porcentagem de gastos com dívidas externas e internas no mês de janeiro**')
-
-def questao9():
-    st.subheader('**9 - No mês de janeiro, qual foi o valor empenhado, liquidado e pago para aposentadoria no estado de Pernambuco e que não tenha sido de dívida**')
+    st.subheader('**6 - Valor empenhado, liquidado e pago por ação num estado específico e que não tenha sido de dívida**')
 
 def default():
     return "Incorreto"
@@ -135,10 +101,7 @@ switcher = {
     "Gráfico 3": questao3,
     "Gráfico 4": questao4,
     "Gráfico 5": questao5,
-    "Gráfico 6": questao6,
-    "Gráfico 7": questao7,
-    "Gráfico 8": questao8,
-    "Gráfico 9": questao9
+    "Gráfico 6": questao6
     }
 
 def switch(dayOfWeek):
