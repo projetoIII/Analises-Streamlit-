@@ -229,7 +229,7 @@ def default():
 
 questoes = []
 
-for i in range(1, 16):
+for i in range(1, 7):
     questoes.append("Gráfico {}".format(i))
 
 st.sidebar.markdown('# Gráfico')
