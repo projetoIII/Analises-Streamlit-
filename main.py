@@ -82,27 +82,30 @@ def questao2():
     st.subheader('**2 - Estados investem mais em um órgão específico**')
 
     st.sidebar.markdown('## Órgão')
-    orgaos = run_query("SELECT DISTINCT nome_orgao FROM orgaos")
+    orgaos = run_query("SELECT DISTINCT nome_orgao, orgao_id FROM orgaos")
     orgaos_base = []
+    orgaos_id = []
 
     for orgao in orgaos:
         og = str(orgao)
         if og[2:-3] != "Indefinido" and og[2:-3] != "Sem informação":
-            orgaos_base.append(og[2:-3])
+            orgaos_base.append(og[2:-5])
+            orgaos_id.append(og[-3:-1])
 
     orgao = st.sidebar.selectbox('Selecione o órgão', options = orgaos_base)
 
-    #fazer uma query que pegue aquele orgao e retorne os tres estados que mais investem nele
-    estados_base = run_query("SELECT localidade.uf from fato_despesas INNER JOIN localidade "
-                             "ON localidade.local_id = fato_despesas.localidade_id "
-                             "where fato_despesas.orgao_superior_id "
-                             "order by (select sum(valor_pago) from fato_despesas group by localidade_id limit 1)")
+    orgao_index = orgaos_base.index(orgao)
+    orgao_id = orgaos_id[orgao_index]
+
+    estados_base = run_query("SELECT l.uf, sum(valor_pago) as valor_pago_total "
+                             "from fato_despesas f INNER JOIN localidade l ON l.local_id = f.localidade_id "
+                             "where f.orgao_superior_id = {0} and l.local_id != 0 group by l.uf "
+                             "order by valor_pago_total desc limit 3;".format(orgao_id))
     estados = []
 
     for estado in estados_base:
         uf = str(estado)
-        if uf[2:-3] != "não informado":
-            estados.append(uf[2:-3])
+        estados.append(uf[2:-3])
 
     st.title("Estados que mais investem")
     for i in range(1, 4):
