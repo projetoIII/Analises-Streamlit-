@@ -33,33 +33,53 @@ def questao1():
     st.subheader('**1 - Porcentagem de gastos de cada grupo de despesa por estado**')
 
     st.sidebar.markdown('## Grupo de despesa')
-    despesas = run_query("SELECT DISTINCT nome_grupo_despesa FROM grupos_despesas")
+    despesas = run_query("SELECT DISTINCT nome_grupo_despesa, grupo_despesa_id FROM grupos_despesas")
     grupo_despesas = []
+    grupo_despesas_id = []
 
     for grupo in despesas:
         gp = str(grupo)
-        grupo_despesas.append(gp[2:-3])
+        if gp[2:-5] != "Indefinido":
+            gp = str(grupo)
+            grupo_despesas.append(gp[2:-5])
+            grupo_despesas_id.append(gp[-3:-1])
 
     despesa = st.sidebar.selectbox('Selecione o grupo de gastros que deseja saber a porcentagem', options = grupo_despesas)
 
+    despesa_index = grupo_despesas.index(despesa)
+    despesa_id = grupo_despesas_id[despesa_index]
+
     st.sidebar.markdown('## Estado')
-    estados = estadosLista()
+    estados_base = run_query("SELECT DISTINCT uf, local_id FROM localidade")
+    estados = []
+    estados_id = []
+
+    for estado in estados_base:
+        uf = str(estado)
+        if uf[2:-5] != "não informado":
+            uf = str(estado)
+            estados.append(uf[2:-5])
+            estados_id.append(uf[-3:-1])
 
     estado = st.sidebar.selectbox('Selecione o estado que deseja saber a porcentagem', options = estados)
 
-    query = "SELECT gd.nome_grupo_despesa,  " \
+    estado_index = estados.index(estado)
+    estado_id = estados_id[estado_index]
+
+    query = query = "SELECT gd.nome_grupo_despesa,  " \
             "(sum(valor_pago) /  (select sum(valor_pago) " \
             "from fato_despesas fd " \
-            "where fd.localidade_id = 2 " \
-            "and f.grupo_despesa_id = 3)) * 100  as porcentagem " \
-            "FROM fato_despesas f INNER JOIN grupos_despesas gd ON gd.grupo_despesa_id = f.grupo_despesa_id " \
-            "WHERE  f.localidade_id = 2 " \
-            "and  f.grupo_despesa_id = 3 " \
-            "GROUP BY nome_grupo_despesa;"
+            "where fd.localidade_id = {0} "\
+            "and f.grupo_despesa_id = {1})) * 100  as porcentagem "\
+             "FROM fato_despesas f INNER JOIN grupos_despesas gd ON gd.grupo_despesa_id = f.grupo_despesa_id " \
+             "WHERE  f.localidade_id = {2} " \
+             "and  f.grupo_despesa_id = {3} "\
+             "GROUP BY nome_grupo_despesa".format(estado_id, despesa_id, estado_id, despesa_id)
+
 
     porcentagem = run_query(query)
 
-    st.write(porcentagem, '%')
+    st.write(porcentagem[0][1], '%')
 
 def questao2():
     st.subheader('**2 - Estados investem mais em um órgão específico**')
