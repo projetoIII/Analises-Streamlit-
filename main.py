@@ -150,47 +150,77 @@ def questao4():
     st.subheader('**4 - Gasto com programas orçamentários por cidade**')
 
     st.sidebar.markdown('## Estado')
-    estados = estadosLista()
+    estados_base = run_query("SELECT DISTINCT uf, local_id FROM localidade")
+    estados = []
+    estados_id = []
+
+    for estado in estados_base:
+        uf = str(estado)
+        if uf[2:-5] != "não informado":
+            uf = str(estado)
+            estados.append(uf[2:-5])
+            estados_id.append(uf[-3:-1])
+
     estado = st.sidebar.selectbox('Selecione o estado que seja consultar as cidades e suas despesas com programas orçamentários', options = estados)
 
-    #query para pegar as cidades do estado
-    cidades_base = run_query("SELECT DISTINCT uf FROM localidade")
-    cidades = []
+    estado_index = estados.index(estado)
+    estado_id = estados_id[estado_index]
 
-    # query para pegar os gastos
-    gastos_base = run_query("SELECT DISTINCT uf FROM localidade")
-    gastos = []
+    query = run_query("select po.nome_programa_orcamentario, (sum(valor_pago) /  (select sum(valor_pago) "
+                      "from fato_despesas fd where fd.localidade_id = {0})) * 100  as porcentagem "
+                      "FROM fato_despesas f INNER JOIN programas_orcamentarios po "
+                      "ON po.programa_orcamentario_id = f.programa_orcamentario_id WHERE f.localidade_id = {1} and "
+                      "f.programa_orcamentario_id = {3}} GROUP BY nome_programa_orcamentario",format(estado_id, estado_id))
 
-    for cidade in cidades_base:
-        cd = str(cidade[2:-3])
-        cidades.append(cd)
+    for i in query:
+        st.write(i)
 
-    st.write(pd.DataFrame({
-        'Cidade': cidades,
-        'Gastos': gastos,
-    }))
-
+    # #query para pegar as cidades do estado
+    # cidades_base = run_query("SELECT DISTINCT uf FROM localidade")
+    # cidades = []
+    #
+    # # query para pegar os gastos
+    # gastos_base = run_query("SELECT DISTINCT uf FROM localidade")
+    # gastos = []
+    #
+    # for cidade in cidades_base:
+    #     cd = str(cidade[2:-3])
+    #     cidades.append(cd)
+    #
+    # st.write(pd.DataFrame({
+    #     'Cidade': cidades,
+    #     'Gastos': gastos,
+    # }))
 
 def questao5():
     st.subheader('**5 - Porcentagem de gastos com um programa orçamentário específico**')
 
     st.sidebar.markdown('## Programa orçamentário')
-    programas_orcamentarios = run_query("SELECT DISTINCT uf FROM localidade") #ajeitar essa query
+    programas_orcamentarios = run_query("SELECT DISTINCT nome_programa_orcamentario, programa_orcamentario_id "
+                                        "FROM programas_orcamentarios")
     programas = []
+    programas_id = []
 
     for programa in programas_orcamentarios:
         pg = str(programa)
-        programas.append(pg[2:-3])
+        if pg[2:-5] != "Indefinido":
+            programas.append(pg[2:-5])
+            programas_id.append(pg[-3:-1])
 
     programa = st.sidebar.selectbox('Selecione o programa orçamentário que deseja saber a porcentagem',
                                    options=programas)
 
-    gasto_total = run_query("SELECT DISTINCT uf FROM localidade") # query que retorno o total de gasto de todos os programas orcamentarios
-    gasto_programa = run_query("SELECT DISTINCT uf FROM localidade") #query que retorne o valor total do programa orcamentario especifico
+    programa_index = programas.index(programa)
+    programa_id = programas_id[programa_index]
 
-    porcentagem = "fazer aqui uma conta pra descobrir sua porcentagem"
+    gastos = run_query("select po.nome_programa_orcamentario, (sum(valor_pago) /  (select sum(valor_pago) "
+                        "from fato_despesas fd)) * 100  as porcentagem "
+                        "FROM fato_despesas f INNER JOIN programas_orcamentarios po "
+                        "ON po.programa_orcamentario_id = f.programa_orcamentario_id WHERE f.programa_orcamentario_id = {0} "
+                        "GROUP BY nome_programa_orcamentario;".format(programa_id))
 
-    st.write(porcentagem, '%')
+    st.write(gastos[0][1], '%')
+
 
 def questao6():
     st.subheader('**6 - Valor empenhado, liquidado e pago por ação num estado específico e que não tenha sido de dívida**')
