@@ -28,8 +28,6 @@ def estadosLista():
     return estados
 
 def questao1():
-    # https://www.alura.com.br/artigos/streamlit-compartilhando-sua-aplicacao-de-dados-sem-dor-de-cabeca
-
     st.subheader('**1 - Porcentagem de gastos de cada grupo de despesa por estado**')
 
     st.sidebar.markdown('## Grupo de despesa')
@@ -76,7 +74,6 @@ def questao1():
              "and  f.grupo_despesa_id = {3} "\
              "GROUP BY nome_grupo_despesa".format(estado_id, despesa_id, estado_id, despesa_id)
 
-
     porcentagem = run_query(query)
 
     st.write(porcentagem[0][1], '%')
@@ -105,10 +102,41 @@ def questao3():
     st.subheader('**3 - Gasto total semanal por semana e por estado**')
 
     st.sidebar.markdown('## Estado')
-    estados = estadosLista()
+    estados_base = run_query("SELECT DISTINCT uf, local_id FROM localidade")
+    estados = []
+    estados_id = []
+
+    for estado in estados_base:
+        uf = str(estado)
+        if uf[2:-5] != "não informado":
+            uf = str(estado)
+            estados.append(uf[2:-5])
+            estados_id.append(uf[-3:-1])
+
     estado = st.sidebar.selectbox('Selecione o estado que deseja consultar os gastos semanais', options=estados)
 
-    gastos_base = run_query("SELECT DISTINCT uf FROM localidade") #fazer a query pra retornar os valores por semana
+    estado_index = estados.index(estado)
+    estado_id = estados_id[estado_index]
+
+    st.sidebar.markdown('## Tempo')
+    tempo_base = run_query("SELECT DISTINCT data_lancamento, tempo_id FROM tempo")
+    data_lancamento = []
+    tempo_id = []
+
+    for tempo in tempo_base:
+        tp = str(tempo)
+        data_lancamento.append(tp[2:-5])
+        tempo_id.append(tp[-3:-1])
+
+    tempo = st.sidebar.selectbox('Selecione a data de lançamento que deseja consultar', options=data_lancamento)
+
+    data_index = data_lancamento.index(tempo)
+    data_id = tempo_id[data_index]
+
+    gastos_base = run_query("select t.data_lancamento, (sum(valor_pago) /  (select sum(valor_pago) from fato_despesas fd "
+                            "where fd.localidade_id = {0})) * 100  as porcentagem "
+                            "FROM fato_despesas f INNER JOIN tempo t ON t.tempo_id = f.tempo_id "
+                            "WHERE f.localidade_id = {1} and f.tempo_id = {2} GROUP BY data_lancamento".format(estado_id, estado_id, data_id))
     gastos = []
 
     for gasto in gastos_base:
