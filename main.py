@@ -108,8 +108,8 @@ def questao2():
         estados.append(uf[2:4])
 
     st.title("Estados que mais investem")
-    for i in range(1, 4):
-        st.write(i, ' - ', estados[i-1])
+    for i in range(0, len(estados)):
+        st.write(i+1, ' - ', estados[i])
 
 def questao3():
     st.subheader('**3 - Gasto total semanal por semana e por estado**')
