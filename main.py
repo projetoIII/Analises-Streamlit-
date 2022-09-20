@@ -76,7 +76,10 @@ def questao1():
 
     porcentagem = run_query(query)
 
-    st.write(porcentagem[0][1], '%')
+    if(len(porcentagem) != 0):
+        st.write(porcentagem[0][1], '%')
+    else :
+        st.write("Não existe valor relacionado")
 
 def questao2():
     st.subheader('**2 - Estados investem mais em um órgão específico**')
