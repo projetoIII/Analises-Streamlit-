@@ -146,64 +146,33 @@ def questao3():
     data_index = data_lancamento.index(tempo)
     data_id = tempo_id[data_index]
 
-    gastos_base = run_query("select t.data_lancamento, (sum(valor_pago) /  (select sum(valor_pago) from fato_despesas fd "
-                            "where fd.localidade_id = {0})) * 100  as porcentagem "
+    gastos_base = run_query("select sum(valor_pago) as valor_total "
                             "FROM fato_despesas f INNER JOIN tempo t ON t.tempo_id = f.tempo_id "
-                            "WHERE f.localidade_id = {1} and f.tempo_id = {2} GROUP BY data_lancamento".format(estado_id, estado_id, data_id))
+                            "WHERE f.localidade_id = {0} and f.tempo_id = {1} GROUP BY data_lancamento".format(estado_id, data_id))
     gastos = []
 
     for gasto in gastos_base:
         gastos.append(gasto)
 
     chart_data = pd.DataFrame(gastos, columns=['semanas'])
-    st.line_chart(data=chart_data, x="Semana", y="Gastos")
+    st.line_chart(data=chart_data)
 
 
 def questao4():
-    st.subheader('**4 - Gasto com programas orçamentários por cidade**')
+    st.subheader('**4 - Gasto com programas orçamentários por estado**')
 
-    st.sidebar.markdown('## Estado')
-    estados_base = run_query("SELECT DISTINCT uf, local_id FROM localidade")
+    query = run_query("select l.uf, sum(valor_pago) as valor_pago_total FROM fato_despesas f "
+                 "INNER JOIN localidade l on l.local_id = f.localidade_id "
+                 "WHERE f.programa_orcamentario_id != -1 and l.local_id != 0 GROUP BY l.uf;")
     estados = []
-    estados_id = []
+    valores = []
 
-    for estado in estados_base:
-        uf = str(estado)
-        if uf[2:-5] != "não informado":
-            uf = str(estado)
-            estados.append(uf[2:-5])
-            estados_id.append(uf[-3:-1])
-
-    estado = st.sidebar.selectbox('Selecione o estado que seja consultar as cidades e suas despesas com programas orçamentários', options = estados)
-
-    estado_index = estados.index(estado)
-    estado_id = estados_id[estado_index]
-
-    query = run_query("select po.nome_programa_orcamentario, (sum(valor_pago) /  (select sum(valor_pago) "
-                      "from fato_despesas fd where fd.localidade_id = {0})) * 100  as porcentagem "
-                      "FROM fato_despesas f INNER JOIN programas_orcamentarios po "
-                      "ON po.programa_orcamentario_id = f.programa_orcamentario_id WHERE f.localidade_id = {1} and "
-                      "f.programa_orcamentario_id = {3}} GROUP BY nome_programa_orcamentario",format(estado_id, estado_id))
-
-    for i in query:
-        st.write(i)
-
-    # #query para pegar as cidades do estado
-    # cidades_base = run_query("SELECT DISTINCT uf FROM localidade")
-    # cidades = []
-    #
-    # # query para pegar os gastos
-    # gastos_base = run_query("SELECT DISTINCT uf FROM localidade")
-    # gastos = []
-    #
-    # for cidade in cidades_base:
-    #     cd = str(cidade[2:-3])
-    #     cidades.append(cd)
-    #
-    # st.write(pd.DataFrame({
-    #     'Cidade': cidades,
-    #     'Gastos': gastos,
-    # }))
+    for valor in query:
+        vl = str(valor)
+        estados.append(str(vl[2:4]))
+        valores.append(str(valor[1]))
+    chart_data = pd.DataFrame(valores, estados)
+    st.line_chart(data=chart_data)
 
 def questao5():
     st.subheader('**5 - Porcentagem de gastos com um programa orçamentário específico**')
