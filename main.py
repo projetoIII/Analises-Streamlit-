@@ -88,8 +88,8 @@ def questao2():
 
     for orgao in orgaos:
         og = str(orgao)
-        if og[2:-3] != "Indefinido" and og[2:-3] != "Sem informação":
-            orgaos_base.append(og[2:-6])
+        if og[2:-5] != "Indefinido" and og[2:-5] != "Sem informação":
+            orgaos_base.append(og[2:-5])
             orgaos_id.append(og[-3:-1])
 
     orgao = st.sidebar.selectbox('Selecione o órgão', options = orgaos_base)
@@ -105,7 +105,7 @@ def questao2():
 
     for estado in estados_base:
         uf = str(estado)
-        estados.append(uf[2:5])
+        estados.append(uf[2:4])
 
     st.title("Estados que mais investem")
     for i in range(1, 4):
