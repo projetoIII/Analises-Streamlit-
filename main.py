@@ -87,12 +87,22 @@ def questao2():
 
     for orgao in orgaos:
         og = str(orgao)
-        orgaos_base.append(og[2:-3])
+        if og[2:-3] != "Indefinido" and og[2:-3] != "Sem informação":
+            orgaos_base.append(og[2:-3])
 
     orgao = st.sidebar.selectbox('Selecione o órgão', options = orgaos_base)
 
     #fazer uma query que pegue aquele orgao e retorne os tres estados que mais investem nele
-    estados = run_query("SELECT DISTINCT uf FROM localidade")
+    estados_base = run_query("SELECT localidade.uf from fato_despesas INNER JOIN localidade "
+                             "ON localidade.local_id = fato_despesas.localidade_id "
+                             "where fato_despesas.orgao_superior_id "
+                             "order by (select sum(valor_pago) from fato_despesas group by localidade_id limit 1)")
+    estados = []
+
+    for estado in estados_base:
+        uf = str(estado)
+        if uf[2:-3] != "não informado":
+            estados.append(uf[2:-3])
 
     st.title("Estados que mais investem")
     for i in range(1, 4):
@@ -204,7 +214,7 @@ def questao5():
     for programa in programas_orcamentarios:
         pg = str(programa)
         if pg[2:-5] != "Indefinido":
-            programas.append(pg[2:-5])
+            programas.append(pg[2:-6])
             programas_id.append(pg[-3:-1])
 
     programa = st.sidebar.selectbox('Selecione o programa orçamentário que deseja saber a porcentagem',
