@@ -112,7 +112,7 @@ def questao1():
         st.write("Não existe valor relacionado")
 
 def questao2():
-    st.subheader('**2 - Estados investem mais em um órgão específico**')
+    st.subheader('**2 - Estados que mais investem em cada um dos órgãos e seus valores e em cada mês**')
 
     st.sidebar.markdown('## Órgão')
     orgaos = run_query("SELECT DISTINCT nome_orgao, orgao_id FROM orgaos")
@@ -125,24 +125,61 @@ def questao2():
             orgaos_base.append(og[2:-5])
             orgaos_id.append(og[-3:-1])
 
-    orgao = st.sidebar.selectbox('Selecione o órgão', options = orgaos_base)
+    orgao = st.sidebar.selectbox('Selecione o órgão', options=orgaos_base, key=1)
 
     orgao_index = orgaos_base.index(orgao)
     orgao_id = orgaos_id[orgao_index]
 
+    st.sidebar.markdown('## Ano')
+    ano_base = run_query("SELECT DISTINCT ano, tempo_id FROM tempo")
+    anos = []
+
+    for ano in ano_base:
+        tp = str(ano)
+        if (tp[2:-5] != "0000") and (tp[2:-5] not in anos):
+            tp = str(ano)
+            anos.append(tp[2:-5])
+
+    ano = st.sidebar.selectbox('Selecione o ano que deseja saber a porcentagem', options=anos, key=2)
+
+    st.sidebar.markdown('## Mês')
+    meses_base = run_query("SELECT DISTINCT mes, tempo_id FROM tempo")
+    meses = []
+    meses_id = []
+
+    for mes in meses_base:
+        ms = str(mes)
+        if ms[2:-5] != "Não especificada":
+            ms = str(mes)
+            meses.append(ms[2:-5])
+            meses_id.append(ms[-3:-1])
+
+    mes = st.sidebar.selectbox('Selecione o mês que deseja saber a porcentagem', options=meses, key=3)
+    mes_index = meses.index(mes)
+    mes_id = meses_id[mes_index]
+
     estados_base = run_query("SELECT l.uf, sum(valor_pago) as valor_pago_total "
                              "from fato_despesas f INNER JOIN localidade l ON l.local_id = f.localidade_id "
                              "where f.orgao_superior_id = {0} and l.local_id != 0 group by l.uf "
-                             "order by valor_pago_total desc limit 3;".format(orgao_id))
+                             "order by valor_pago_total desc".format(orgao_id, mes_id))
+
     estados = []
+    valores = []
 
     for estado in estados_base:
         uf = str(estado)
         estados.append(uf[2:4])
+        valores.append(uf[16:-3])
 
     st.title("Estados que mais investem")
+    count = 0
     for i in range(0, len(estados)):
-        st.write(i+1, ' - ', estados[i])
+        if(valores[i] != '0.00'):
+            count+=1
+            st.write(i+1, ' - ', estados[i], ': R$', valores[i])
+
+    if(count == 0):
+        st.write("Não houveram investimentos para o órgão selecionado no período.")
 
 def questao3():
     st.subheader('**3 - Gasto total nos 3 primeiros meses do ano e por estado**')
