@@ -64,7 +64,8 @@ def questao1():
     estado_index = estados.index(estado)
     estado_id = estados_id[estado_index]
 
-    query = query = "SELECT gd.nome_grupo_despesa,  " \
+    #retornar aqui tres valores, filtrados a cada mes
+    query = "SELECT gd.nome_grupo_despesa,  " \
             "(sum(valor_pago) /  (select sum(valor_pago) " \
             "from fato_despesas fd " \
             "where fd.localidade_id = {0} "\
