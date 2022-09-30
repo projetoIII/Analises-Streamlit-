@@ -28,7 +28,7 @@ def estadosLista():
     return estados
 
 def questao1():
-    st.subheader('**1 - Porcentagem de gastos de cada grupo de despesa por estado**')
+    st.subheader('**1 - Porcentagem de gastos de cada grupo de despesa por estado em cada mês do ano**')
 
     st.sidebar.markdown('## Grupo de despesa')
     despesas = run_query("SELECT DISTINCT nome_grupo_despesa, grupo_despesa_id FROM grupos_despesas")
@@ -42,8 +42,7 @@ def questao1():
             grupo_despesas.append(gp[2:-5])
             grupo_despesas_id.append(gp[-3:-1])
 
-    despesa = st.sidebar.selectbox('Selecione o grupo de gastros que deseja saber a porcentagem', options = grupo_despesas)
-
+    despesa = st.sidebar.selectbox('Selecione o grupo de gastros que deseja saber a porcentagem', options = grupo_despesas, key = 1)
     despesa_index = grupo_despesas.index(despesa)
     despesa_id = grupo_despesas_id[despesa_index]
 
@@ -59,21 +58,51 @@ def questao1():
             estados.append(uf[2:-5])
             estados_id.append(uf[-3:-1])
 
-    estado = st.sidebar.selectbox('Selecione o estado que deseja saber a porcentagem', options = estados)
-
+    estado = st.sidebar.selectbox('Selecione o estado que deseja saber a porcentagem', options = estados, key = 2)
     estado_index = estados.index(estado)
     estado_id = estados_id[estado_index]
 
+    st.sidebar.markdown('## Ano')
+    ano_base = run_query("SELECT DISTINCT ano, tempo_id FROM tempo")
+    anos = []
+
+    for ano in ano_base:
+        tp = str(ano)
+        if (tp[2:-5] != "0000") and (tp[2:-5] not in anos):
+            tp = str(ano)
+            anos.append(tp[2:-5])
+
+    ano = st.sidebar.selectbox('Selecione o ano que deseja saber a porcentagem', options=anos, key = 3)
+
+    st.sidebar.markdown('## Mês')
+    meses_base = run_query("SELECT DISTINCT mes, tempo_id FROM tempo")
+    meses = []
+    meses_id = []
+
+    for mes in meses_base:
+        ms = str(mes)
+        if ms[2:-5] != "Não especificada":
+            ms = str(mes)
+            meses.append(ms[2:-5])
+            meses_id.append(ms[-3:-1])
+
+    mes = st.sidebar.selectbox('Selecione o mês que deseja saber a porcentagem', options=meses, key = 4)
+    mes_index = meses.index(mes)
+    mes_id = meses_id[mes_index]
+
     #retornar aqui tres valores, filtrados a cada mes
-    query = "SELECT gd.nome_grupo_despesa,  " \
+    query = "SELECT l.uf,  " \
             "(sum(valor_pago) /  (select sum(valor_pago) " \
             "from fato_despesas fd " \
             "where fd.localidade_id = {0} "\
             "and f.grupo_despesa_id = {1})) * 100  as porcentagem "\
-             "FROM fato_despesas f INNER JOIN grupos_despesas gd ON gd.grupo_despesa_id = f.grupo_despesa_id " \
-             "WHERE  f.localidade_id = {2} " \
-             "and  f.grupo_despesa_id = {3} "\
-             "GROUP BY nome_grupo_despesa".format(estado_id, despesa_id, estado_id, despesa_id)
+             "FROM fato_despesas f INNER JOIN grupos_despesas gd " \
+            "INNER JOIN tempo t ON t.tempo_id = f.tempo_id INNER JOIN localidade l " \
+            "ON l.local_id = f.localidade_id " \
+            "WHERE   f.grupo_despesa_id = {1} " \
+            "and t.ano like '%2022%' and t.mes_numero = {2} " \
+            "GROUP BY nome_grupo_despesa,localidade_id " \
+            "ORDER BY porcentagem desc".format(estado_id, despesa_id, mes_id)
 
     porcentagem = run_query(query)
 
