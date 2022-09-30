@@ -251,83 +251,109 @@ def questao3():
     #alterar ainda o modo de exibicao
     #st.write('R$',str(gastos_base[0][0]))
 
-
 def questao4():
-    st.subheader('**4 - Gasto com programas orçamentários por estado**')
+    st.subheader('**4 - Unidades orçamentárias que mais receberam de despesas de valor pago e quanto foi deixado de pagar do resto de valores a pagar inscritos por mês e por ano  e quanto receberam**')
 
-    query = run_query("select l.uf, sum(valor_pago) as valor_pago_total FROM fato_despesas f "
-                 "INNER JOIN localidade l on l.local_id = f.localidade_id "
-                 "WHERE f.programa_orcamentario_id != -1 and l.local_id != 0 GROUP BY l.uf;")
-    estados = []
-    valores = []
+    st.sidebar.markdown('## Ano')
+    ano_base = run_query("SELECT DISTINCT ano, tempo_id FROM tempo")
+    anos = []
 
-    for valor in query:
-        vl = str(valor)
-        estados.append(str(vl[2:4]))
-        valores.append(str(valor[1]))
-    chart_data = pd.DataFrame(valores, estados)
-    st.line_chart(data=chart_data)
+    for ano in ano_base:
+        tp = str(ano)
+        if (tp[2:-5] != "0000") and (tp[2:-5] not in anos):
+            tp = str(ano)
+            anos.append(tp[2:-5])
+
+    ano = st.sidebar.selectbox('Selecione o ano que deseja saber a porcentagem', options=anos, key=1)
+
+    st.sidebar.markdown('## Mês')
+    meses_base = run_query("SELECT DISTINCT mes, tempo_id FROM tempo")
+    meses = []
+    meses_id = []
+
+    for mes in meses_base:
+        ms = str(mes)
+        if ms[2:-5] != "Não especificada":
+            ms = str(mes)
+            meses.append(ms[2:-5])
+            meses_id.append(ms[-3:-1])
+
+    mes = st.sidebar.selectbox('Selecione o mês que deseja saber a porcentagem', options=meses, key=1)
+    mes_index = meses.index(mes)
+    mes_id = meses_id[mes_index]
+
+    #falta ajeitar a query
+    #query = run_query()
+
+    #falta adicionar lista de exibicao
 
 def questao5():
-    st.subheader('**5 - Porcentagem de gastos com um programa orçamentário específico**')
+    st.subheader('**5 - Relação entre o mês, ano e valor pago por despesa por programa orçamentário**')
 
-    st.sidebar.markdown('## Programa orçamentário')
-    programas_orcamentarios = run_query("SELECT DISTINCT nome_programa_orcamentario, programa_orcamentario_id "
-                                        "FROM programas_orcamentarios")
-    programas = []
-    programas_id = []
+    st.sidebar.markdown('## Ano')
+    ano_base = run_query("SELECT DISTINCT ano, tempo_id FROM tempo")
+    anos = []
 
-    for programa in programas_orcamentarios:
-        pg = str(programa)
-        if pg[2:-5] != "Indefinido":
-            programas.append(pg[2:-6])
-            programas_id.append(pg[-3:-1])
+    for ano in ano_base:
+        tp = str(ano)
+        if (tp[2:-5] != "0000") and (tp[2:-5] not in anos):
+            tp = str(ano)
+            anos.append(tp[2:-5])
 
-    programa = st.sidebar.selectbox('Selecione o programa orçamentário que deseja saber a porcentagem',
-                                   options=programas)
+    ano = st.sidebar.selectbox('Selecione o ano que deseja saber a porcentagem', options=anos, key=1)
 
-    programa_index = programas.index(programa)
-    programa_id = programas_id[programa_index]
+    st.sidebar.markdown('## Mês')
+    meses_base = run_query("SELECT DISTINCT mes, tempo_id FROM tempo")
+    meses = []
+    meses_id = []
 
-    gastos = run_query("select po.nome_programa_orcamentario, (sum(valor_pago) /  (select sum(valor_pago) "
-                        "from fato_despesas fd)) * 100  as porcentagem "
-                        "FROM fato_despesas f INNER JOIN programas_orcamentarios po "
-                        "ON po.programa_orcamentario_id = f.programa_orcamentario_id WHERE f.programa_orcamentario_id = {0} "
-                        "GROUP BY nome_programa_orcamentario;".format(programa_id))
+    for mes in meses_base:
+        ms = str(mes)
+        if ms[2:-5] != "Não especificada":
+            ms = str(mes)
+            meses.append(ms[2:-5])
+            meses_id.append(ms[-3:-1])
 
-    st.write(gastos[0][1], '%')
+    mes = st.sidebar.selectbox('Selecione o mês que deseja saber a porcentagem', options=meses, key=2)
+    mes_index = meses.index(mes)
+    mes_id = meses_id[mes_index]
 
+    #corrigir query
+   # gastos = run_query()
+
+    #ajeitar lista de exibicao
+    #st.write(gastos[0][1], '%')
 
 def questao6():
-    st.subheader('**6 - Valor empenhado, liquidado e pago por ação num estado específico e que não tenha sido de dívida**')
+    st.subheader('**6 - Quais foram os estados que aumentaram os investimentos em determinado ministério entre o primeiro e o terceiro mês do trimestre**')
 
-    st.sidebar.markdown('## Estados')
-    estados = estadosLista()
-    estado = st.sidebar.selectbox(
-        'Selecione o estado que seja consultar uma ação', options=estados)
+    #completar aqui
 
-    st.sidebar.markdown('## Ação orçamentária')
-    acoes_base = run_query("SELECT DISTINCT uf FROM localidade") #corrigir query
-    acoes = []
+    #adicionar query aqui
+    #adicionar o retorno aqui
 
-    for acao in acoes_base:
-        ac = str(acao)
-        acoes.append(ac[2:-3])
+def questao7():
+    st.subheader('**7 - Diferença entre os valores pagos por estado e suas dívidas no trimestre**')
 
-    acao = st.sidebar.selectbox('Selecione ação orçamentária que deseja saber os valores',
-                                   options=acoes)
+    st.sidebar.markdown('## Estado')
+    estados_base = run_query("SELECT DISTINCT uf, local_id FROM localidade")
+    estados = []
+    estados_id = []
 
-    valores_base = run_query("SELECT DISTINCT uf FROM localidade") #query que retorne o valor empenhado, liquidado e pago
-    valores = []
+    for estado in estados_base:
+        uf = str(estado)
+        if uf[2:-5] != "não informado":
+            uf = str(estado)
+            estados.append(uf[2:-5])
+            estados_id.append(uf[-3:-1])
 
-    for valor in valores_base:
-        valores.append(valor)
+    estado = st.sidebar.selectbox('Selecione o estado que deseja consultar os gastos semanais', options=estados, key=1)
 
-    st.title("Valor empenhado, liquidado e pago pela ação ", acao, " no estado ", estado)
-    st.write("Valor empenhado: ", valores[0])
-    st.write("Valor liquidado: ", valores[1])
-    st.write("Valor pago: ", valores[2])
+    estado_index = estados.index(estado)
+    estado_id = estados_id[estado_index]
 
+    # adicionar query aqui
+    # adicionar o retorno aqui
 
 def default():
     return "Incorreto"
@@ -335,7 +361,7 @@ def default():
 
 questoes = []
 
-for i in range(1, 7):
+for i in range(1, 8):
     questoes.append("Gráfico {}".format(i))
 
 st.sidebar.markdown('# Gráfico')
@@ -348,7 +374,8 @@ switcher = {
     "Gráfico 3": questao3,
     "Gráfico 4": questao4,
     "Gráfico 5": questao5,
-    "Gráfico 6": questao6
+    "Gráfico 6": questao6,
+    "Gráfico 7": questao7
     }
 
 def switch(dayOfWeek):
