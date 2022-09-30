@@ -77,7 +77,10 @@ def questao1():
 
     porcentagem = run_query(query)
 
-    st.write(porcentagem[0][1], '%')
+    if(len(porcentagem) != 0):
+        st.write(porcentagem[0][1], '%')
+    else :
+        st.write("Não existe valor relacionado")
 
 def questao2():
     st.subheader('**2 - Estados investem mais em um órgão específico**')
@@ -113,7 +116,7 @@ def questao2():
         st.write(i+1, ' - ', estados[i])
 
 def questao3():
-    st.subheader('**3 - Gasto total semanal por semana e por estado**')
+    st.subheader('**3 - Gasto total nos 3 primeiros meses do ano e por estado**')
 
     st.sidebar.markdown('## Estado')
     estados_base = run_query("SELECT DISTINCT uf, local_id FROM localidade")
@@ -133,7 +136,7 @@ def questao3():
     estado_id = estados_id[estado_index]
 
     st.sidebar.markdown('## Tempo')
-    tempo_base = run_query("SELECT DISTINCT data_lancamento, tempo_id FROM tempo")
+    tempo_base = run_query("SELECT DISTINCT data_lancamento, tempo_id FROM tempo where tempo_id != 0")
     data_lancamento = []
     tempo_id = []
 
@@ -150,13 +153,9 @@ def questao3():
     gastos_base = run_query("select sum(valor_pago) as valor_total "
                             "FROM fato_despesas f INNER JOIN tempo t ON t.tempo_id = f.tempo_id "
                             "WHERE f.localidade_id = {0} and f.tempo_id = {1} GROUP BY data_lancamento".format(estado_id, data_id))
-    gastos = []
 
-    for gasto in gastos_base:
-        gastos.append(gasto)
-
-    chart_data = pd.DataFrame(gastos, columns=['semanas'])
-    st.line_chart(data=chart_data)
+    print(gastos_base)
+    st.write('R$',str(gastos_base[0][0]))
 
 
 def questao4():
