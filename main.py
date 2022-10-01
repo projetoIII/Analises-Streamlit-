@@ -159,9 +159,13 @@ def questao2():
     mes_id = meses_id[mes_index]
 
     estados_base = run_query("SELECT l.uf, sum(valor_pago) as valor_pago_total "
-                             "from fato_despesas f INNER JOIN localidade l ON l.local_id = f.localidade_id "
-                             "where f.orgao_superior_id = {0} and l.local_id != 0 group by l.uf "
-                             "order by valor_pago_total desc".format(orgao_id, mes_id))
+                             "from fato_despesas f "
+                             "INNER JOIN localidade l "
+                             "ON l.local_id = f.localidade_id "
+                             "INNER JOIN tempo t ON t.tempo_id = f.tempo_id "
+                             "where f.orgao_superior_id = {0} and l.local_id != 0 "
+                             "and t.mes_numero = {1} "
+                             "and t.ano like '%2022%' group by l.uf order by valor_pago_total desc ".format(orgao_id, mes_id))
 
     estados = []
     valores = []
