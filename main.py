@@ -19,12 +19,12 @@ def run_query(query):
         return cur.fetchall()
 
 def estadosLista():
-    estados_base = run_query("SELECT DISTINCT uf FROM localidade")
+    estados_base = run_query("SELECT DISTINCT uf FROM localidade order by uf")
     estados = []
 
     for estado in estados_base:
-        uf = str(estado)
-        estados.append(uf[2:-3])
+        if estado[0] != "não informado":
+            estados.append(estado[0])
 
     return estados
 
@@ -399,14 +399,9 @@ def questao7():
     st.subheader('**7 - Quanto foi a diferença do valor que foi reservado e do que foi realmente pago para cada um dos programas orçamentários por estado e trimestre? E qual porcentagem das despesas tiveram valores empenhados e pagos diferentes?**')
 
     st.sidebar.markdown('## Estado')
-    estados_base = run_query("SELECT DISTINCT uf FROM localidade")
-    estados = []
+    estado = st.sidebar.selectbox('Selecione o estado que deseja consultar os gastos semanais', options=estadosLista(), key=1)
 
-    for estado in estados_base:
-        if estado[0] != "não informado":
-            estados.append(estado[0])
-
-    estado = st.sidebar.selectbox('Selecione o estado que deseja consultar os gastos semanais', options=estados, key=1)
+    st.sidebar.markdown('## Ano')
 
     ano_base = run_query("SELECT DISTINCT ano FROM tempo")
     anos = []
@@ -435,7 +430,7 @@ def questao7():
     programa_id = programas_id[programa_index]
 
 
-
+    st.sidebar.markdown('## Trimestre')
 
     trimestre_base = run_query("SELECT DISTINCT trimestre FROM tempo")
     trimestres = []
