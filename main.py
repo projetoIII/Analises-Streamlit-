@@ -92,18 +92,17 @@ def questao1():
     mes_id = meses_id[mes_index]
 
     #retornar aqui tres valores, filtrados a cada mes
-    query = "SELECT l.uf,  " \
-            "(sum(valor_pago) /  (select sum(valor_pago) " \
+    query = "SELECT l.uf as estado, ((select sum(valor_pago) from fato_despesas fd " \
+            "INNER JOIN localidade l ON l.local_id = fd.localidade_id " \
+            "where fd.grupo_despesa_id = {0} and l.uf = estado)/(select sum(valor_pago) " \
             "from fato_despesas fd " \
-            "where fd.localidade_id = {0} "\
-            "and f.grupo_despesa_id = {1})) * 100  as porcentagem "\
-             "FROM fato_despesas f INNER JOIN grupos_despesas gd " \
-            "INNER JOIN tempo t ON t.tempo_id = f.tempo_id INNER JOIN localidade l " \
-            "ON l.local_id = f.localidade_id " \
-            "WHERE   f.grupo_despesa_id = {1} " \
-            "and t.ano like '%2022%' and t.mes_numero = {2} " \
-            "GROUP BY nome_grupo_despesa,localidade_id " \
-            "ORDER BY porcentagem desc".format(estado_id, despesa_id, mes_id)
+            "where fd.grupo_despesa_id = {0})) * 100  as porcentagem " \
+            "FROM fato_despesas f " \
+            "INNER JOIN grupos_despesas gd ON gd.grupo_despesa_id = f.grupo_despesa_id " \
+            "INNER JOIN tempo t ON t.tempo_id = f.tempo_id " \
+            "INNER JOIN localidade l ON l.local_id = f.localidade_id " \
+            "WHERE   f.grupo_despesa_id = {0} and t.ano like '%2022%' and t.mes_numero = {1} " \
+            "GROUP BY estado ORDER BY porcentagem desc;".format(despesa_id, mes_id)
 
     porcentagem = run_query(query)
 
@@ -338,19 +337,63 @@ def questao5():
     mes_index = meses.index(mes)
     mes_id = meses_id[mes_index]
 
-    #corrigir query
-   # gastos = run_query()
+    gastos = run_query("select  p.nome_programa_orcamentario, sum(valor_pago) as valor_pago "
+                       "FROM fato_despesas f "
+                       "INNER JOIN tempo t ON t.tempo_id = f.tempo_id "
+                       "INNER JOIN programas_orcamentarios p ON p.programa_orcamentario_id = f.programa_orcamentario_id "
+                       "WHERE t.ano like '%2022%' and f.tempo_id = {0} "
+                       "GROUP BY f.programa_orcamentario_id "
+                       "order by valor_pago desc".format(mes_id))
 
-    #ajeitar lista de exibicao
-    #st.write(gastos[0][1], '%')
+    for i in gastos:
+        st.write(i)
 
 def questao6():
     st.subheader('**6 - Quais foram os estados que aumentaram os investimentos em determinado ministério entre o primeiro e o terceiro mês do trimestre**')
 
-    #completar aqui
+    st.sidebar.markdown('## Órgão')
+    orgaos = run_query("SELECT DISTINCT nome_orgao, orgao_id FROM orgaos")
+    orgaos_base = []
+    orgaos_id = []
 
-    #adicionar query aqui
-    #adicionar o retorno aqui
+    for orgao in orgaos:
+        og = str(orgao)
+        if og[2:-5] != "Indefinido" and og[2:-5] != "Sem informação":
+            orgaos_base.append(og[2:-5])
+            orgaos_id.append(og[-3:-1])
+
+    orgao = st.sidebar.selectbox('Selecione o órgão', options=orgaos_base, key=1)
+
+    orgao_index = orgaos_base.index(orgao)
+    orgao_id = orgaos_id[orgao_index]
+
+    st.sidebar.markdown('## Trimestre')
+    trimestre_base = run_query("SELECT DISTINCT trimestre, tempo_id FROM tempo")
+    trimestres = []
+    trimestres_id = []
+
+    for trimestre in trimestre_base:
+        tm = str(trimestre)
+        if (tm[1:2] != "0") and (tm[1:2] not in trimestres):
+            tm = str(trimestre)
+            trimestres.append(tm[1:2])
+            trimestres_id.append(tm[4:6])
+
+    trimestre = st.sidebar.selectbox('Selecione o mês que deseja saber a porcentagem', options=trimestres, key=2)
+    trimestre_index = trimestres.index(trimestre)
+    trimestre_id = trimestres_id[trimestre_index]
+
+    estados = run_query("select l.uf, ( SELECT sum(valor_pago) from fato_despesas as f "
+                        "INNER JOIN localidade l ON l.local_id = f.localidade_id "
+                        "where tempo_id = {0}) - (SELECT sum(valor_pago) from fato_despesas as f "
+                        "INNER JOIN localidade l ON l.local_id = f.localidade_id "
+                        "where tempo_id = {0}) AS valor "
+                        "FROM fato_despesas f INNER JOIN tempo t ON t.tempo_id = f.tempo_id "
+                        "INNER JOIN localidade l ON l.local_id = f.localidade_id "
+                        "WHERE t.ano like '%2022%' and t.trimestre = {0} GROUP BY l.uf".format(trimestre_id))
+
+    for i in estados:
+        st.write(i)
 
 def questao7():
     st.subheader('**7 - Quanto foi a diferença do valor que foi reservado e do que foi realmente pago para cada um dos programas orçamentários por estado e trimestre? E qual porcentagem das despesas tiveram valores empenhados e pagos diferentes?**')
