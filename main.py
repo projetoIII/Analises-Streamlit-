@@ -2,6 +2,7 @@ import streamlit as st
 import mysql.connector
 import switcher as switcher
 import pandas as pd
+import matplotlib.pyplot as plt
 
 st.title('Análise dos dados')
 
@@ -352,27 +353,90 @@ def questao6():
     #adicionar o retorno aqui
 
 def questao7():
-    st.subheader('**7 - Diferença entre os valores pagos por estado e suas dívidas no trimestre**')
+    st.subheader('**7 - Quanto foi a diferença do valor que foi reservado e do que foi realmente pago para cada um dos programas orçamentários por estado e trimestre? E qual porcentagem das despesas tiveram valores empenhados e pagos diferentes?**')
 
     st.sidebar.markdown('## Estado')
-    estados_base = run_query("SELECT DISTINCT uf, local_id FROM localidade")
+    estados_base = run_query("SELECT DISTINCT uf FROM localidade")
     estados = []
-    estados_id = []
 
     for estado in estados_base:
-        uf = str(estado)
-        if uf[2:-5] != "não informado":
-            uf = str(estado)
-            estados.append(uf[2:-5])
-            estados_id.append(uf[-3:-1])
+        if estado[0] != "não informado":
+            estados.append(estado[0])
 
     estado = st.sidebar.selectbox('Selecione o estado que deseja consultar os gastos semanais', options=estados, key=1)
 
-    estado_index = estados.index(estado)
-    estado_id = estados_id[estado_index]
+    ano_base = run_query("SELECT DISTINCT ano FROM tempo")
+    anos = []
+
+    for ano in ano_base:
+        if (ano[0] != "0000"):
+            anos.append(ano[0])
+
+
+    ano = st.sidebar.selectbox('Selecione o ano:', options=anos, key=2)
+
+    st.sidebar.markdown('## Programa Orçamentário')
+    programas = run_query("SELECT DISTINCT nome_programa_orcamentario, programa_orcamentario_id FROM programas_orcamentarios")
+    programas_base = []
+    programas_id = []
+
+    for programa in programas:
+        og = str(programa)
+        if og[2:-5] != "NAO ATRIBUIDO" and og[2:-5] != "Indefinido" and og[2:-5] != "Sem informação":
+            programas_base.append(og[2:-5])
+            programas_id.append(og[-3:-1])
+
+    programa = st.sidebar.selectbox('Selecione o programa orçamentário', options=programas_base, key=3)
+
+    programa_index = programas_base.index(programa)
+    programa_id = programas_id[programa_index]
+
+
+
+
+    trimestre_base = run_query("SELECT DISTINCT trimestre FROM tempo")
+    trimestres = []
+
+    for trimestre in trimestre_base:
+        if (trimestre[0] != 0):
+            trimestres.append(trimestre[0])
+
+    trimestre = st.sidebar.selectbox('Selecione o Trimestre:', options=trimestres, key=4)
+
 
     # adicionar query aqui
-    # adicionar o retorno aqui
+    query = run_query("select (sum(valor_empenhado) - sum(valor_pago)) as diferenca_valor_empenhado_pago, "
+                       "((select count(*) as qtd_despesas_negativas from fato_despesas "
+                       "INNER JOIN localidade l ON l.local_id = localidade_id "
+                       "where valor_empenhado <> valor_pago and l.uf = '{0}' and programa_orcamentario_id = {3}) "
+                       " / (select count(*) as qtd_despesas from fato_despesas "
+                       " INNER JOIN localidade l ON l.local_id = localidade_id "
+                       " where l.uf = '{0}' and programa_orcamentario_id = {3})) * 100 as porcentagem "
+                       "FROM fato_despesas f "
+                       "INNER JOIN tempo t ON t.tempo_id = f.tempo_id "
+                       "INNER JOIN localidade l ON l.local_id = f.localidade_id "
+                       "WHERE t.ano like '%{1}%' "  
+                       "and l.uf = '{0}' "
+                       "and t.trimestre = {2} "
+                       "and programa_orcamentario_id = {3};".format(estado, ano, trimestre, programa_id))
+
+    if (query[0][0] is not None):
+        st.write("**Diferença de: R$ {0}**".format(query[0][0]))
+
+        if (query[0][0] >= 0):
+            st.write("Isso significa que a soma dos valores pago foram menores ou iguais a dos empenhados")
+        else: 
+            st.write("Isso significa que a soma dos valores pagos foram maiores do que a dos empenhados")
+
+        fig = plt.figure(figsize=(10, 4))
+        diferencaPorcentagem = 100-query[0][1]
+        plt.pie([query[0][1], diferencaPorcentagem], labels =  ["Valores Pagos Diferentes dos Empenhados","Valores Pagos de Acordo"], autopct='%.1f%%')
+
+        st.pyplot(fig)
+    else:
+        st.write("Não existe valor relacionado")
+    
+    
 
 def default():
     return "Incorreto"
