@@ -249,10 +249,17 @@ def questao3():
     mes_index = meses.index(mes)
     mes_id = meses_id[mes_index]
 
-    #alterar query
-    #gastos_base = run_query()
+    gastos_base = run_query("select sum(valor_pago), sum(valor_empenhado), sum(valor_liquidado) "
+                            "FROM fato_despesas f "
+                            "INNER JOIN tempo t ON t.tempo_id = f.tempo_id "
+                            "INNER JOIN localidade l ON l.local_id = f.localidade_id "
+                            "WHERE f.programa_governo_id = {0} "
+                            "and t.ano like '%2022%' and f.tempo_id = {1} "
+                            "GROUP BY uf".format(programa_id, mes_id))
 
     #alterar ainda o modo de exibicao
+    for i in gastos_base:
+        st.write(i)
     #st.write('R$',str(gastos_base[0][0]))
 
 def questao4():
@@ -282,14 +289,22 @@ def questao4():
             meses.append(ms[2:-5])
             meses_id.append(ms[-3:-1])
 
-    mes = st.sidebar.selectbox('Selecione o mês que deseja saber a porcentagem', options=meses, key=1)
+    mes = st.sidebar.selectbox('Selecione o mês que deseja saber a porcentagem', options=meses, key=2)
     mes_index = meses.index(mes)
     mes_id = meses_id[mes_index]
 
-    #falta ajeitar a query
-    #query = run_query()
+    query = run_query("select  u.nome_unidade_orcamentaria, sum(valor_pago) as valor_pago, "
+                      "sum(valor_resto_pagar_inscrito) as valor_resto "
+                      "FROM fato_despesas f "
+                      "INNER JOIN tempo t ON t.tempo_id = f.tempo_id "
+                      "INNER JOIN localidade l ON l.local_id = f.localidade_id "
+                      "INNER JOIN unidades_orcamentarias u ON u.unidade_orcamentaria_id = f.unidade_orcamentaria_id "
+                      "and t.ano like '%2022%' and f.tempo_id = {0} "
+                      "GROUP BY f.unidade_orcamentaria_id "
+                      "ORDER BY valor_pago desc".format(mes_id))
 
-    #falta adicionar lista de exibicao
+    for i in query:
+        st.write(i)
 
 def questao5():
     st.subheader('**5 - Relação entre o mês, ano e valor pago por despesa por programa orçamentário**')
