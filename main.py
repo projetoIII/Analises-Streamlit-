@@ -59,6 +59,15 @@ def mesLista():
             meses_id.append(mes[1])
     return (meses, meses_id)
 
+def programaGovernoLista():
+    programas = run_query("SELECT DISTINCT nome_programa_governo, programa_governo_id FROM programas_governo")
+    programas_base = []
+    programas_id = []
+    for programa in programas:
+        programas_base.append(programa[0])
+        programas_id.append(programa[1])
+    return (programas_base, programas_id)
+
 def questao1():
     st.subheader('**1 - Porcentagem de gastos de cada grupo de despesa por estado em cada mês do ano**')
 
@@ -185,73 +194,36 @@ def questao3():
     st.subheader('**3 - Soma de gastos pagos, liquidados e empenhados por programa do governo e por estado a em determinado mês**')
 
     st.sidebar.markdown('## Programa de governo')
-    programas = run_query("SELECT DISTINCT nome_programa_governo, programa_governo_id FROM programas_governo")
-    programas_base = []
-    programas_id = []
 
-    for programa in programas:
-        og = str(programa)
-        if og[2:-5] != "NAO ATRIBUIDO" and og[2:-5] != "Indefinido" and og[2:-5] != "Sem informação":
-            programas_base.append(og[2:-5])
-            programas_id.append(og[-3:-1])
 
-    programa = st.sidebar.selectbox('Selecione o programa de governo', options=programas_base, key=1)
+    programasGoverno = programaGovernoLista()
+    programa = st.sidebar.selectbox('Selecione o programa de governo', options=programasGoverno[0], key=1)
 
-    programa_index = programas_base.index(programa)
-    programa_id = programas_id[programa_index]
+    programa_index = programasGoverno[0].index(programa)
+    programa_id = programasGoverno[1][programa_index]
 
     st.sidebar.markdown('## Estado')
-    estados_base = run_query("SELECT DISTINCT uf, local_id FROM localidade")
-    estados = []
-    estados_id = []
 
-    for estado in estados_base:
-        uf = str(estado)
-        if uf[2:-5] != "não informado":
-            uf = str(estado)
-            estados.append(uf[2:-5])
-            estados_id.append(uf[-3:-1])
 
+    estados = estadosLista()
     estado = st.sidebar.selectbox('Selecione o estado que deseja consultar os gastos semanais', options=estados, key=2)
 
-    estado_index = estados.index(estado)
-    estado_id = estados_id[estado_index]
-
     st.sidebar.markdown('## Ano')
-    ano_base = run_query("SELECT DISTINCT ano, tempo_id FROM tempo")
-    anos = []
 
-    for ano in ano_base:
-        tp = str(ano)
-        if (tp[2:-5] != "0000") and (tp[2:-5] not in anos):
-            tp = str(ano)
-            anos.append(tp[2:-5])
-
-    ano = st.sidebar.selectbox('Selecione o ano que deseja saber a porcentagem', options=anos, key=3)
+    ano = st.sidebar.selectbox('Selecione o ano que deseja saber a porcentagem', options=anoLista(), key=3)
 
     st.sidebar.markdown('## Mês')
-    meses_base = run_query("SELECT DISTINCT mes, tempo_id FROM tempo")
-    meses = []
-    meses_id = []
+    
+    meses = mesLista()
+    mes = st.sidebar.selectbox('Selecione o mês que deseja saber a porcentagem', options=meses[0], key=4)
 
-    for mes in meses_base:
-        ms = str(mes)
-        if ms[2:-5] != "Não especificada":
-            ms = str(mes)
-            meses.append(ms[2:-5])
-            meses_id.append(ms[-3:-1])
-
-    mes = st.sidebar.selectbox('Selecione o mês que deseja saber a porcentagem', options=meses, key=4)
-    mes_index = meses.index(mes)
-    mes_id = meses_id[mes_index]
-
-    gastos_base = run_query("select sum(valor_pago), sum(valor_empenhado), sum(valor_liquidado) "
+    gastos_base = run_query("select (sum(valor_pago) + sum(valor_empenhado) + sum(valor_liquidado)) as valor_total "
                             "FROM fato_despesas f "
                             "INNER JOIN tempo t ON t.tempo_id = f.tempo_id "
                             "INNER JOIN localidade l ON l.local_id = f.localidade_id "
                             "WHERE f.programa_governo_id = {0} "
-                            "and t.ano like '%2022%' and f.tempo_id = {1} "
-                            "GROUP BY uf".format(programa_id, mes_id))
+                            "and t.ano like '%{1}%' and t.mes = '{2}' and uf = '{3}' "
+                            "GROUP BY uf".format(programa_id, ano, mes, estado))
 
     #alterar ainda o modo de exibicao
     for i in gastos_base:
