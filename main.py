@@ -68,6 +68,17 @@ def programaGovernoLista():
         programas_id.append(programa[1])
     return (programas_base, programas_id)
 
+def programaOrcamentarioLista():
+    programas = run_query("SELECT DISTINCT nome_programa_orcamentario, programa_orcamentario_id FROM programas_orcamentarios")
+    programas_base = []
+    programas_id = []
+
+    for programa in programas:
+        programas_base.append(programa[0])
+        programas_id.append(programa[1])
+
+    return (programas_base, programas_id)
+
 def questao1():
     st.subheader('**1 - Porcentagem de gastos de cada grupo de despesa por estado em cada mês do ano**')
 
@@ -371,31 +382,15 @@ def questao7():
 
     st.sidebar.markdown('## Ano')
 
-    ano_base = run_query("SELECT DISTINCT ano FROM tempo")
-    anos = []
-
-    for ano in ano_base:
-        if (ano[0] != "0000"):
-            anos.append(ano[0])
-
-
-    ano = st.sidebar.selectbox('Selecione o ano:', options=anos, key=2)
+    ano = st.sidebar.selectbox('Selecione o ano:', options=anoLista(), key=2)
 
     st.sidebar.markdown('## Programa Orçamentário')
-    programas = run_query("SELECT DISTINCT nome_programa_orcamentario, programa_orcamentario_id FROM programas_orcamentarios")
-    programas_base = []
-    programas_id = []
 
-    for programa in programas:
-        og = str(programa)
-        if og[2:-5] != "NAO ATRIBUIDO" and og[2:-5] != "Indefinido" and og[2:-5] != "Sem informação":
-            programas_base.append(og[2:-5])
-            programas_id.append(og[-3:-1])
+    programas = programaOrcamentarioLista()
+    programa = st.sidebar.selectbox('Selecione o programa orçamentário', options=programas[0], key=3)
 
-    programa = st.sidebar.selectbox('Selecione o programa orçamentário', options=programas_base, key=3)
-
-    programa_index = programas_base.index(programa)
-    programa_id = programas_id[programa_index]
+    programa_index = programas[0].index(programa)
+    programa_id = programas[1][programa_index]
 
 
     st.sidebar.markdown('## Trimestre')
