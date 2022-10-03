@@ -33,7 +33,6 @@ def grupoDespesaLista():
     grupo_despesas = []
     grupo_despesas_id = []
     for grupo in despesas:
-        print(grupo)
         grupo_despesas.append(grupo[0])
         grupo_despesas_id.append(grupo[1])
 
@@ -78,6 +77,25 @@ def programaOrcamentarioLista():
         programas_id.append(programa[1])
 
     return (programas_base, programas_id)
+
+def trimestreLista():
+    trimestre_base = run_query("SELECT DISTINCT trimestre FROM tempo")
+    trimestres = []
+
+    for trimestre in trimestre_base:
+        if (trimestre[0] != 0):
+            trimestres.append(trimestre[0])
+    return trimestres
+
+def orgaosLista():
+    orgaos = run_query("SELECT DISTINCT nome_orgao, orgao_id FROM orgaos")
+    orgaos_base = []
+    orgaos_id = []
+
+    for orgao in orgaos:
+        orgaos_base.append(orgao[0])
+        orgaos_id.append(orgao[1])
+    return (orgaos_base, orgaos_id)
 
 def questao1():
     st.subheader('**1 - Porcentagem de gastos de cada grupo de despesa por estado em cada mês do ano**')
@@ -331,45 +349,25 @@ def questao6():
     st.subheader('**6 - Quais foram os estados que aumentaram os investimentos em determinado ministério entre o primeiro e o terceiro mês do trimestre**')
 
     st.sidebar.markdown('## Órgão')
-    orgaos = run_query("SELECT DISTINCT nome_orgao, orgao_id FROM orgaos")
-    orgaos_base = []
-    orgaos_id = []
 
-    for orgao in orgaos:
-        og = str(orgao)
-        if og[2:-5] != "Indefinido" and og[2:-5] != "Sem informação":
-            orgaos_base.append(og[2:-5])
-            orgaos_id.append(og[-3:-1])
+    orgaos = orgaosLista()
+    orgao = st.sidebar.selectbox('Selecione o órgão', options=orgaos[0], key=1)
 
-    orgao = st.sidebar.selectbox('Selecione o órgão', options=orgaos_base, key=1)
-
-    orgao_index = orgaos_base.index(orgao)
-    orgao_id = orgaos_id[orgao_index]
+    orgao_index = orgaos[0].index(orgao)
+    orgao_id = orgaos[1][orgao_index]
 
     st.sidebar.markdown('## Trimestre')
-    trimestre_base = run_query("SELECT DISTINCT trimestre, tempo_id FROM tempo")
-    trimestres = []
-    trimestres_id = []
 
-    for trimestre in trimestre_base:
-        tm = str(trimestre)
-        if (tm[1:2] != "0") and (tm[1:2] not in trimestres):
-            tm = str(trimestre)
-            trimestres.append(tm[1:2])
-            trimestres_id.append(tm[4:6])
-
-    trimestre = st.sidebar.selectbox('Selecione o mês que deseja saber a porcentagem', options=trimestres, key=2)
-    trimestre_index = trimestres.index(trimestre)
-    trimestre_id = trimestres_id[trimestre_index]
+    trimestre = st.sidebar.selectbox('Selecione o mês que deseja saber a porcentagem', options=trimestreLista(), key=2)
 
     estados = run_query("select l.uf, ( SELECT sum(valor_pago) from fato_despesas as f "
                         "INNER JOIN localidade l ON l.local_id = f.localidade_id "
-                        "where tempo_id = {0}) - (SELECT sum(valor_pago) from fato_despesas as f "
+                        "where trimestre = {0}) - (SELECT sum(valor_pago) from fato_despesas as f "
                         "INNER JOIN localidade l ON l.local_id = f.localidade_id "
-                        "where tempo_id = {0}) AS valor "
+                        "where trimestre = {0}) AS valor "
                         "FROM fato_despesas f INNER JOIN tempo t ON t.tempo_id = f.tempo_id "
                         "INNER JOIN localidade l ON l.local_id = f.localidade_id "
-                        "WHERE t.ano like '%2022%' and t.trimestre = {0} GROUP BY l.uf".format(trimestre_id))
+                        "WHERE t.ano like '%2022%' and t.trimestre = {0} GROUP BY l.uf".format(trimestre))
 
     for i in estados:
         st.write(i)
@@ -395,14 +393,7 @@ def questao7():
 
     st.sidebar.markdown('## Trimestre')
 
-    trimestre_base = run_query("SELECT DISTINCT trimestre FROM tempo")
-    trimestres = []
-
-    for trimestre in trimestre_base:
-        if (trimestre[0] != 0):
-            trimestres.append(trimestre[0])
-
-    trimestre = st.sidebar.selectbox('Selecione o Trimestre:', options=trimestres, key=4)
+    trimestre = st.sidebar.selectbox('Selecione o Trimestre:', options=trimestreLista(), key=4)
 
 
     # adicionar query aqui
