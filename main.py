@@ -149,48 +149,20 @@ def questao2():
     st.subheader('**2 - Estados que mais investem em cada um dos órgãos e seus valores e em cada mês**')
 
     st.sidebar.markdown('## Órgão')
-    orgaos = run_query("SELECT DISTINCT nome_orgao, orgao_id FROM orgaos")
-    orgaos_base = []
-    orgaos_id = []
+    orgaos = orgaosLista()
+    orgao = st.sidebar.selectbox('Selecione o órgão', options=orgaos[0], key=1)
 
-    for orgao in orgaos:
-        og = str(orgao)
-        if og[2:-5] != "Indefinido" and og[2:-5] != "Sem informação":
-            orgaos_base.append(og[2:-5])
-            orgaos_id.append(og[-3:-1])
-
-    orgao = st.sidebar.selectbox('Selecione o órgão', options=orgaos_base, key=1)
-
-    orgao_index = orgaos_base.index(orgao)
-    orgao_id = orgaos_id[orgao_index]
+    orgao_index = orgaos[0].index(orgao)
+    orgao_id = orgaos[1][orgao_index]
 
     st.sidebar.markdown('## Ano')
-    ano_base = run_query("SELECT DISTINCT ano, tempo_id FROM tempo")
-    anos = []
 
-    for ano in ano_base:
-        tp = str(ano)
-        if (tp[2:-5] != "0000") and (tp[2:-5] not in anos):
-            tp = str(ano)
-            anos.append(tp[2:-5])
-
-    ano = st.sidebar.selectbox('Selecione o ano que deseja saber a porcentagem', options=anos, key=2)
+    ano = st.sidebar.selectbox('Selecione o ano que deseja saber a porcentagem', options=anoLista(), key=2)
 
     st.sidebar.markdown('## Mês')
-    meses_base = run_query("SELECT DISTINCT mes, tempo_id FROM tempo")
-    meses = []
-    meses_id = []
 
-    for mes in meses_base:
-        ms = str(mes)
-        if ms[2:-5] != "Não especificada":
-            ms = str(mes)
-            meses.append(ms[2:-5])
-            meses_id.append(ms[-3:-1])
-
-    mes = st.sidebar.selectbox('Selecione o mês que deseja saber a porcentagem', options=meses, key=3)
-    mes_index = meses.index(mes)
-    mes_id = meses_id[mes_index]
+    meses = mesLista()
+    mes = st.sidebar.selectbox('Selecione o mês que deseja saber a porcentagem', options=meses[0], key=3)
 
     estados_base = run_query("SELECT l.uf, sum(valor_pago) as valor_pago_total "
                              "from fato_despesas f "
@@ -198,8 +170,8 @@ def questao2():
                              "ON l.local_id = f.localidade_id "
                              "INNER JOIN tempo t ON t.tempo_id = f.tempo_id "
                              "where f.orgao_superior_id = {0} and l.local_id != 0 "
-                             "and t.mes_numero = {1} "
-                             "and t.ano like '%2022%' group by l.uf order by valor_pago_total desc ".format(orgao_id, mes_id))
+                             "and t.mes = '{1}' "
+                             "and t.ano like '%2022%' group by l.uf order by valor_pago_total desc ".format(orgao_id, mes))
 
     estados = []
     valores = []
@@ -220,42 +192,39 @@ def questao2():
         st.write("Não houveram investimentos para o órgão selecionado no período.")
 
 def questao3():
-    st.subheader('**3 - Soma de gastos pagos, liquidados e empenhados por programa do governo e por estado a em determinado mês**')
-
-    st.sidebar.markdown('## Programa de governo')
-
-
-    programasGoverno = programaGovernoLista()
-    programa = st.sidebar.selectbox('Selecione o programa de governo', options=programasGoverno[0], key=1)
-
-    programa_index = programasGoverno[0].index(programa)
-    programa_id = programasGoverno[1][programa_index]
+    st.subheader('**3 -Quanto foi os valores pagos, liquidados e empenhados por programa do governo e por estado a em determinado mês?**')
 
     st.sidebar.markdown('## Estado')
 
+    estado = st.sidebar.selectbox('Selecione o Estado:', options=estadosLista(), key=1)
 
-    estados = estadosLista()
-    estado = st.sidebar.selectbox('Selecione o estado que deseja consultar os gastos semanais', options=estados, key=2)
+    st.sidebar.markdown('## Programa Governo')
+    
+    programas = programaGovernoLista()
+    programa = st.sidebar.selectbox('Selecione o Programa:', options=programas[0], key=2)
+    programa_index = programas[0].index(programa)
+    programa_id = programas[1][programa_index]
 
     st.sidebar.markdown('## Ano')
 
-    ano = st.sidebar.selectbox('Selecione o ano que deseja saber a porcentagem', options=anoLista(), key=3)
+    ano = st.sidebar.selectbox('Selecione o ano:', options=anoLista(), key=3)
 
     st.sidebar.markdown('## Mês')
-    
-    meses = mesLista()
-    mes = st.sidebar.selectbox('Selecione o mês que deseja saber a porcentagem', options=meses[0], key=4)
 
-    gastos_base = run_query("select (sum(valor_pago) + sum(valor_empenhado) + sum(valor_liquidado)) as valor_total "
+    meses = mesLista()
+    mes = st.sidebar.selectbox('Selecione o mês:', options=meses[0], key=4)
+
+
+    resultado = run_query("select sum(valor_empenhado), sum(valor_liquidado), sum(valor_pago) "
                             "FROM fato_despesas f "
                             "INNER JOIN tempo t ON t.tempo_id = f.tempo_id "
                             "INNER JOIN localidade l ON l.local_id = f.localidade_id "
-                            "WHERE f.programa_governo_id = {0} "
-                            "and t.ano like '%{1}%' and t.mes = '{2}' and uf = '{3}' "
-                            "GROUP BY uf".format(programa_id, ano, mes, estado))
-
+                            "WHERE f.programa_governo_id = {3} "
+                            "and t.ano like '%{0}%' "
+                            "and t.mes = '{1}' "
+                            "and l.uf = '{2}'".format(ano, mes, estado, programa_id))
     #alterar ainda o modo de exibicao
-    for i in gastos_base:
+    for i in resultado:
         st.write(i)
     #st.write('R$',str(gastos_base[0][0]))
 
