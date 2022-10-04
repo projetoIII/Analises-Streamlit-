@@ -103,22 +103,22 @@ def questao1():
     st.sidebar.markdown('## Grupo de despesa')
 
     gruposDespesas = grupoDespesaLista()
-    despesa = st.sidebar.selectbox('Selecione o grupo de gastos que deseja saber a porcentagem', options = gruposDespesas[0], key = 1)
+    despesa = st.sidebar.selectbox('Selecione o grupo de gastos: ', options = gruposDespesas[0], key = 1)
     despesa_index = gruposDespesas[0].index(despesa)
     despesa_id = gruposDespesas[1][despesa_index]
 
     st.sidebar.markdown('## Estado')
 
-    estado = st.sidebar.selectbox('Selecione o estado que deseja saber a porcentagem', options = estadosLista(), key = 2)
+    estado = st.sidebar.selectbox('Selecione o estado:', options = estadosLista(), key = 2)
 
     st.sidebar.markdown('## Ano')
 
-    ano = st.sidebar.selectbox('Selecione o ano que deseja saber a porcentagem', options=anoLista(), key = 3)
+    ano = st.sidebar.selectbox('Selecione o ano: ', options=anoLista(), key = 3)
 
     st.sidebar.markdown('## Mês')
 
     meses = mesLista()
-    mes = st.sidebar.selectbox('Selecione o mês que deseja saber a porcentagem', options=meses[0], key = 4)
+    mes = st.sidebar.selectbox('Selecione o mês: ', options=meses[0], key = 4)
     mes_index = meses[0].index(mes)
     mes_id = meses[1][mes_index]
 
@@ -157,12 +157,12 @@ def questao2():
 
     st.sidebar.markdown('## Ano')
 
-    ano = st.sidebar.selectbox('Selecione o ano que deseja saber a porcentagem', options=anoLista(), key=2)
+    ano = st.sidebar.selectbox('Selecione o ano: ', options=anoLista(), key=2)
 
     st.sidebar.markdown('## Mês')
 
     meses = mesLista()
-    mes = st.sidebar.selectbox('Selecione o mês que deseja saber a porcentagem', options=meses[0], key=3)
+    mes = st.sidebar.selectbox('Selecione o mês: ', options=meses[0], key=3)
 
     estados_base = run_query("SELECT l.uf, sum(valor_pago) as valor_pago_total "
                              "from fato_despesas f "
@@ -236,35 +236,16 @@ def questao3():
     st.pyplot(fig)
 
 def questao4():
-    st.subheader('**4 - Unidades orçamentárias que mais receberam de despesas de valor pago e quanto foi deixado de pagar do resto de valores a pagar inscritos por mês e por ano  e quanto receberam**')
+    st.subheader('**4 - Unidades orçamentárias que mais receberam de despesas de valor pago e quanto foi deixado de pagar do resto de valores a pagar inscritos por mês e por ano e quanto receberam?**')
 
     st.sidebar.markdown('## Ano')
-    ano_base = run_query("SELECT DISTINCT ano, tempo_id FROM tempo")
-    anos = []
 
-    for ano in ano_base:
-        tp = str(ano)
-        if (tp[2:-5] != "0000") and (tp[2:-5] not in anos):
-            tp = str(ano)
-            anos.append(tp[2:-5])
-
-    ano = st.sidebar.selectbox('Selecione o ano que deseja saber a porcentagem', options=anos, key=1)
+    ano = st.sidebar.selectbox('Selecione o ano:', options=anoLista(), key=1)
 
     st.sidebar.markdown('## Mês')
-    meses_base = run_query("SELECT DISTINCT mes, tempo_id FROM tempo")
-    meses = []
-    meses_id = []
 
-    for mes in meses_base:
-        ms = str(mes)
-        if ms[2:-5] != "Não especificada":
-            ms = str(mes)
-            meses.append(ms[2:-5])
-            meses_id.append(ms[-3:-1])
-
-    mes = st.sidebar.selectbox('Selecione o mês que deseja saber a porcentagem', options=meses, key=2)
-    mes_index = meses.index(mes)
-    mes_id = meses_id[mes_index]
+    meses = mesLista()
+    mes = st.sidebar.selectbox('Selecione o mês: ', options=meses[0], key=2)
 
     query = run_query("select  u.nome_unidade_orcamentaria, sum(valor_pago) as valor_pago, "
                       "sum(valor_resto_pagar_inscrito) as valor_resto "
@@ -272,27 +253,18 @@ def questao4():
                       "INNER JOIN tempo t ON t.tempo_id = f.tempo_id "
                       "INNER JOIN localidade l ON l.local_id = f.localidade_id "
                       "INNER JOIN unidades_orcamentarias u ON u.unidade_orcamentaria_id = f.unidade_orcamentaria_id "
-                      "and t.ano like '%2022%' and f.tempo_id = {0} "
+                      "and t.ano like '%{0}%' and t.mes = '{1}' "
                       "GROUP BY f.unidade_orcamentaria_id "
-                      "ORDER BY valor_pago desc".format(mes_id))
+                      "ORDER BY valor_pago desc".format(ano, mes))
 
-    for i in query:
-        st.write(i)
+    for resultado in query:
+        st.write("Unidade Orçamentária: {}, Valor Recebido: {}, Valores inscritos não pagos: {}".format(resultado[0], resultado[1], resultado[2]))
 
 def questao5():
     st.subheader('**5 - Relação entre o mês, ano e valor pago por despesa por programa orçamentário**')
 
     st.sidebar.markdown('## Ano')
-    ano_base = run_query("SELECT DISTINCT ano, tempo_id FROM tempo")
-    anos = []
-
-    for ano in ano_base:
-        tp = str(ano)
-        if (tp[2:-5] != "0000") and (tp[2:-5] not in anos):
-            tp = str(ano)
-            anos.append(tp[2:-5])
-
-    ano = st.sidebar.selectbox('Selecione o ano que deseja saber a porcentagem', options=anos, key=1)
+    ano = st.sidebar.selectbox('Selecione o ano que deseja saber a porcentagem', options=anoLista(), key=1)
 
     st.sidebar.markdown('## Mês')
     meses_base = run_query("SELECT DISTINCT mes, tempo_id FROM tempo")
@@ -305,21 +277,19 @@ def questao5():
             ms = str(mes)
             meses.append(ms[2:-5])
             meses_id.append(ms[-3:-1])
-
-    mes = st.sidebar.selectbox('Selecione o mês que deseja saber a porcentagem', options=meses, key=2)
-    mes_index = meses.index(mes)
-    mes_id = meses_id[mes_index]
+    meses = mesLista()
+    mes = st.sidebar.selectbox('Selecione o mês que deseja saber a porcentagem', options=meses[0], key=2)
 
     gastos = run_query("select  p.nome_programa_orcamentario, sum(valor_pago) as valor_pago "
                        "FROM fato_despesas f "
                        "INNER JOIN tempo t ON t.tempo_id = f.tempo_id "
                        "INNER JOIN programas_orcamentarios p ON p.programa_orcamentario_id = f.programa_orcamentario_id "
-                       "WHERE t.ano like '%2022%' and f.tempo_id = {0} "
+                       "WHERE t.ano like '%{1}%' and t.mes = '{0}' "
                        "GROUP BY f.programa_orcamentario_id "
-                       "order by valor_pago desc".format(mes_id))
+                       "order by valor_pago desc".format(mes, ano))
 
-    for i in gastos:
-        st.write(i)
+    for resultado in gastos:
+        st.write("Programa: {}, Valor Pago: R$ {}".format(resultado[0], resultado[1]))
 
 def questao6():
     st.subheader('**6 - Quais os órgãos com maior valor empenhado por estado, e quanto foi empenhado por mês?**')
