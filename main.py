@@ -214,8 +214,9 @@ def questao3():
     meses = mesLista()
     mes = st.sidebar.selectbox('Selecione o mês:', options=meses[0], key=4)
 
-
-    resultado = run_query("select sum(valor_empenhado), sum(valor_liquidado), sum(valor_pago) "
+    resultado = run_query("select FORMAT(coalesce(sum(valor_empenhado), 0), 2, 'de_DE') as valor_empenhado, "
+                            "FORMAT(coalesce(sum(valor_liquidado), 0), 2, 'de_DE') as valor_liquidado, "
+                            "FORMAT(coalesce(sum(valor_pago), 0), 2, 'de_DE') as valor_pago "
                             "FROM fato_despesas f "
                             "INNER JOIN tempo t ON t.tempo_id = f.tempo_id "
                             "INNER JOIN localidade l ON l.local_id = f.localidade_id "
@@ -223,10 +224,16 @@ def questao3():
                             "and t.ano like '%{0}%' "
                             "and t.mes = '{1}' "
                             "and l.uf = '{2}'".format(ano, mes, estado, programa_id))
-    #alterar ainda o modo de exibicao
-    for i in resultado:
-        st.write(i)
-    #st.write('R$',str(gastos_base[0][0]))
+
+    labels = ["Valor Empenhado", "Valor Liquidado", "Valor Pago"]   
+    valores = []    
+    for valor in resultado[0]:
+        valores.append(valor)
+
+    fig = plt.figure(figsize = (10, 5))
+    plt.barh(labels, valores)
+    plt.title("Valor Empenhado x Liquidado x Pago")
+    st.pyplot(fig)
 
 def questao4():
     st.subheader('**4 - Unidades orçamentárias que mais receberam de despesas de valor pago e quanto foi deixado de pagar do resto de valores a pagar inscritos por mês e por ano  e quanto receberam**')
