@@ -346,31 +346,39 @@ def questao5():
         st.write(i)
 
 def questao6():
-    st.subheader('**6 - Quais foram os estados que aumentaram os investimentos em determinado ministério entre o primeiro e o terceiro mês do trimestre**')
+    st.subheader('**6 - Quais os órgãos com maior valor empenhado por estado, e quanto foi empenhado por mês?**')
 
-    st.sidebar.markdown('## Órgão')
+    st.sidebar.markdown('## Mês')
 
-    orgaos = orgaosLista()
-    orgao = st.sidebar.selectbox('Selecione o órgão', options=orgaos[0], key=1)
+    meses = mesLista()
+    mes = st.sidebar.selectbox('Selecione o mês:', options=meses[0], key=1)
 
-    orgao_index = orgaos[0].index(orgao)
-    orgao_id = orgaos[1][orgao_index]
+    mes_index = meses[0].index(mes)
+    mes_id = meses[1][mes_index]
 
-    st.sidebar.markdown('## Trimestre')
+    st.sidebar.markdown('## Estado')
 
-    trimestre = st.sidebar.selectbox('Selecione o mês que deseja saber a porcentagem', options=trimestreLista(), key=2)
-
-    estados = run_query("select l.uf, ( SELECT sum(valor_pago) from fato_despesas as f "
-                        "INNER JOIN localidade l ON l.local_id = f.localidade_id "
-                        "where trimestre = {0}) - (SELECT sum(valor_pago) from fato_despesas as f "
-                        "INNER JOIN localidade l ON l.local_id = f.localidade_id "
-                        "where trimestre = {0}) AS valor "
+    estado = st.sidebar.selectbox('Selecione o estado:', options=estadosLista(), key=2)
+    resultado = run_query("select FORMAT(sum(valor_empenhado), 2, 'de_DE') as valor_total_empenhado, nome_orgao "
                         "FROM fato_despesas f INNER JOIN tempo t ON t.tempo_id = f.tempo_id "
                         "INNER JOIN localidade l ON l.local_id = f.localidade_id "
-                        "WHERE t.ano like '%2022%' and t.trimestre = {0} GROUP BY l.uf".format(trimestre))
+                        "INNER JOIN orgaos o ON o.orgao_id = f.orgao_superior_id "
+                        "WHERE t.tempo_id = {0} and uf = '{1}' and valor_empenhado > 0 GROUP BY o.nome_orgao "
+                        "order by valor_total_empenhado desc ".format(mes_id, estado))
 
-    for i in estados:
-        st.write(i)
+    valores = []
+    orgaos = []
+    for valor in resultado:
+        st.write("Órgão: {1}, Valor: R$ {0}".format(valor[0], valor[1]))
+        valores.append(valor[1])
+        orgaos.append(valor[0])
+
+    fig = plt.figure(figsize = (10, 5))
+    plt.bar(orgaos, valores)
+    plt.xlabel("Valor")
+    plt.ylabel("Órgãos")
+    plt.title("Órgão x Valor")
+    st.pyplot(fig)
 
 def questao7():
     st.subheader('**7 - Quanto foi a diferença do valor que foi reservado e do que foi realmente pago para cada um dos programas orçamentários por estado e trimestre? E qual porcentagem das despesas tiveram valores empenhados e pagos diferentes?**')
